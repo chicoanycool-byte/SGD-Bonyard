@@ -1,0 +1,107 @@
+import { NextResponse } from 'next/server'
+import PDFDocument from 'pdfkit'
+import { createClient } from '@/lib/supabase/server'
+import { requerirUsuario } from '@/lib/auth'
+
+export async function GET() {
+  const quien = await requerirUsuario()
+  if (quien.rol !== 'coordinador_sgi') {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  }
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('verificacion_respuestas')
+    .select(
+      'respuesta, hallazgo, estatus, checklist:verificacion_checklist(bloque, criterio), verificacion:verificaciones(numero, fecha)'
+    )
+    .eq('respuesta', 'no_cumple')
+    .order('creado_en', { ascending: true })
+
+  const hallazgos = data ?? []
+
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 })
+  const chunks: Buffer[] = []
+  doc.on('data', (chunk) => chunks.push(chunk))
+  const listo = new Promise<Buffer>((resolve) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+  })
+
+  doc.fontSize(14).fillColor('#08495C').text('VERIFICACIÓN DEL SGI — HALLAZGOS', { align: 'center' })
+  doc.fontSize(9).fillColor('#666').text('BONYARD Servicios', { align: 'center' })
+  doc.moveDown(1)
+
+  const columnas = [
+    { titulo: 'No. Verif.', ancho: 60 },
+    { titulo: 'Fecha', ancho: 60 },
+    { titulo: 'Bloque', ancho: 140 },
+    { titulo: 'Criterio', ancho: 380 },
+    { titulo: 'Hallazgo', ancho: 220 },
+    { titulo: 'Estatus', ancho: 60 },
+  ]
+
+  let y = doc.y
+  let x = doc.page.margins.left
+
+  function encabezado() {
+    x = doc.page.margins.left
+    doc.rect(x, y, columnas.reduce((a, c) => a + c.ancho, 0), 16).fill('#08495C')
+    doc.fillColor('#FFFFFF').fontSize(7)
+    for (const col of columnas) {
+      doc.text(col.titulo, x + 2, y + 4, { width: col.ancho - 4 })
+      x += col.ancho
+    }
+    y += 16
+  }
+
+  encabezado()
+  doc.fontSize(7).fillColor('#222')
+
+  for (const h of hallazgos) {
+    if (y > doc.page.height - 50) {
+      doc.addPage()
+      y = doc.page.margins.top
+      encabezado()
+      doc.fontSize(7).fillColor('#222')
+    }
+
+    const c = h.checklist as unknown as { bloque: string | null; criterio: string } | null
+    const v = h.verificacion as unknown as { numero: string; fecha: string } | null
+
+    x = doc.page.margins.left
+    const valores = [
+      v?.numero ?? '',
+      v?.fecha ? new Date(v.fecha + 'T00:00:00').toLocaleDateString('es-MX') : '',
+      c?.bloque ?? '',
+      c?.criterio ?? '',
+      h.hallazgo ?? '',
+      h.estatus === 'cerrado' ? 'Cerrado' : 'Abierto',
+    ]
+
+    const alturaFila = 16
+    for (let i = 0; i < columnas.length; i++) {
+      doc.text(String(valores[i] ?? ''), x + 2, y + 2, {
+        width: columnas[i].ancho - 4,
+        height: alturaFila,
+        ellipsis: true,
+      })
+      x += columnas[i].ancho
+    }
+    doc
+      .moveTo(doc.page.margins.left, y + alturaFila)
+      .lineTo(x, y + alturaFila)
+      .strokeColor('#e0e0e0')
+      .stroke()
+    y += alturaFila
+  }
+
+  doc.end()
+  const buffer = await listo
+
+  return new NextResponse(new Uint8Array(buffer), {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="Verificacion_SGI_Hallazgos.pdf"`,
+    },
+  })
+}
