@@ -9,7 +9,7 @@ export default async function AsesorPage() {
 
   const { data } = await supabase
     .from('asesor_mensajes')
-    .select('rol, contenido')
+    .select('rol, contenido, imagen_base64')
     .eq('usuario_id', quien.id)
     .order('creado_en', { ascending: true })
     .limit(50)
@@ -17,6 +17,7 @@ export default async function AsesorPage() {
   const mensajes = (data ?? []).map((m) => ({
     rol: m.rol as 'user' | 'assistant',
     contenido: m.contenido as string,
+    imagen: m.imagen_base64 as string | null,
   }))
 
   return (
