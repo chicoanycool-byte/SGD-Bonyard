@@ -169,7 +169,24 @@ Si no encuentras nada relevante, responde con un array vacío [].`
   }
 }
 
-export type MensajeChat = { role: 'user' | 'assistant'; content: string }
+export type MensajeChat = {
+  role: 'user' | 'assistant'
+  content: string
+  imagen?: string | null // data URL, ej. "data:image/jpeg;base64,...."
+}
+
+function construirContenidoMensaje(m: MensajeChat) {
+  if (!m.imagen) return m.content
+
+  const match = m.imagen.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
+  if (!match) return m.content
+
+  const [, mediaType, data] = match
+  return [
+    { type: 'image', source: { type: 'base64', media_type: mediaType, data } },
+    { type: 'text', text: m.content || '¿Qué observas en esta imagen?' },
+  ]
+}
 
 export async function chatAsesorSGI(
   historial: MensajeChat[],
@@ -192,6 +209,7 @@ Ayudas con:
 - Buenas Prácticas de Almacenamiento (BPA) e inocuidad alimentaria
 - Cómo usar los módulos del sistema SGD Bonyard (Documentos, Solicitudes, Auditorías, Quejas, AC/AP, Indicadores, Proveedores, Recorridos BPA, Verificación del SGI)
 - Orientación general de calidad, mejora continua y cultura de inocuidad
+- Analizar fotos que te envíen (hallazgos de BPA, etiquetas, empaques, condiciones de almacén, evidencia de auditoría, etc.) y dar retroalimentación práctica sobre lo que observas
 
 Si preguntan algo fuera de tu ámbito (nómina, temas personales, IT no relacionado a SGI), redirige amablemente al área correspondiente.
 
@@ -212,7 +230,10 @@ ${catalogoDocumentos || 'Sin documentos cargados todavía.'}`
         model: MODEL,
         max_tokens: 1200,
         system: systemPrompt,
-        messages: historial,
+        messages: historial.map((m) => ({
+          role: m.role,
+          content: construirContenidoMensaje(m),
+        })),
       }),
     })
 
