@@ -5,21 +5,22 @@ import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { chatAsesorSGI, type MensajeChat } from '@/lib/anthropic'
 
-export async function enviarMensajeAsesor(contenido: string) {
+export async function enviarMensajeAsesor(contenido: string, imagenBase64?: string | null) {
   const quien = await requerirUsuario()
-  if (!contenido.trim()) throw new Error('Escribe una pregunta.')
+  if (!contenido.trim() && !imagenBase64) throw new Error('Escribe una pregunta o adjunta una foto.')
 
   const supabase = await createClient()
 
   await supabase.from('asesor_mensajes').insert({
     usuario_id: quien.id,
     rol: 'user',
-    contenido,
+    contenido: contenido || '(Foto adjunta)',
+    imagen_base64: imagenBase64 || null,
   })
 
   const { data: historialData } = await supabase
     .from('asesor_mensajes')
-    .select('rol, contenido')
+    .select('rol, contenido, imagen_base64')
     .eq('usuario_id', quien.id)
     .order('creado_en', { ascending: true })
     .limit(20)
@@ -27,6 +28,7 @@ export async function enviarMensajeAsesor(contenido: string) {
   const historial: MensajeChat[] = (historialData ?? []).map((m) => ({
     role: m.rol as 'user' | 'assistant',
     content: m.contenido as string,
+    imagen: m.imagen_base64 as string | null,
   }))
 
   const { data: documentos } = await supabase
