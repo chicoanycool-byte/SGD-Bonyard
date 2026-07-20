@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { chatAsesorSGI, type MensajeChat } from '@/lib/anthropic'
+import { obtenerTextoDocumento } from '@/lib/documentos-texto'
 
 export async function enviarMensajeAsesor(contenido: string, imagenBase64?: string | null) {
   const quien = await requerirUsuario()
@@ -39,7 +40,7 @@ export async function enviarMensajeAsesor(contenido: string, imagenBase64?: stri
 
   const catalogo = (documentos ?? []).map((d) => `${d.codigo} — ${d.nombre}`).join('\n')
 
-  const respuesta = await chatAsesorSGI(historial, catalogo)
+  const respuesta = await chatAsesorSGI(historial, catalogo, obtenerTextoDocumento)
 
   await supabase.from('asesor_mensajes').insert({
     usuario_id: quien.id,
