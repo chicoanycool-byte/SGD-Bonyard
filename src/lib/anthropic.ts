@@ -190,7 +190,8 @@ function construirContenidoMensaje(m: MensajeChat) {
 
 export async function chatAsesorSGI(
   historial: MensajeChat[],
-  catalogoDocumentos: string
+  catalogoDocumentos: string,
+  buscarDocumento: (codigo: string) => Promise<string | null>
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -213,41 +214,88 @@ Ayudas con:
 
 Si preguntan algo fuera de tu ámbito (nómina, temas personales, IT no relacionado a SGI), redirige amablemente al área correspondiente.
 
-Sé breve y directo salvo que la pregunta requiera una explicación más completa. No inventes números de cláusula o contenido de documentos que no conozcas con certeza; si no estás seguro del contenido exacto de un documento, dilo y sugiere consultarlo en el módulo Documentos.
+Sé breve y directo salvo que la pregunta requiera una explicación más completa. No inventes números de cláusula o contenido de documentos que no conozcas con certeza. Cuando la pregunta trate sobre un procedimiento, formato o proceso interno específico, usa la herramienta "consultar_documento_interno" con el código exacto del catálogo para leer su contenido real antes de responder, en vez de suponer lo que dice. Si el documento relevante no es obvio, puedes consultar hasta 2-3 documentos del catálogo que parezcan más relacionados.
 
 Catálogo actual de documentos del SGI (código — nombre):
 ${catalogoDocumentos || 'Sin documentos cargados todavía.'}`
 
-  try {
-    const respuesta = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+  const tools = [
+    {
+      name: 'consultar_documento_interno',
+      description:
+        'Obtiene el texto completo de un documento interno del SGI (procedimiento, formato o manual) a partir de su código exacto tal como aparece en el catálogo (ej. "PSG-03", "PCO-02", "FSG-19"). Úsala siempre que necesites basar tu respuesta en el contenido real de un documento específico.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          codigo: {
+            type: 'string',
+            description: 'Código exacto del documento, tal como aparece en el catálogo (ej. "PSG-03").',
+          },
+        },
+        required: ['codigo'],
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1200,
-        system: systemPrompt,
-        messages: historial.map((m) => ({
-          role: m.role,
-          content: construirContenidoMensaje(m),
-        })),
-      }),
-    })
+    },
+  ]
 
-    if (!respuesta.ok) {
-      return 'Tu Asesor no pudo responder en este momento. Intenta de nuevo en unos segundos.'
+  type BloqueContenido = { type: string; [clave: string]: unknown }
+  let mensajesApi: { role: string; content: unknown }[] = historial.map((m) => ({
+    role: m.role,
+    content: construirContenidoMensaje(m),
+  }))
+
+  try {
+    for (let intento = 0; intento < 4; intento++) {
+      const respuesta = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 1200,
+          system: systemPrompt,
+          messages: mensajesApi,
+          tools,
+        }),
+      })
+
+      if (!respuesta.ok) {
+        return 'Tu Asesor no pudo responder en este momento. Intenta de nuevo en unos segundos.'
+      }
+
+      const data = await respuesta.json()
+      const bloques: BloqueContenido[] = data.content ?? []
+      const textoBloques = bloques
+        .filter((b) => b.type === 'text')
+        .map((b) => b.text as string)
+        .join('\n')
+      const usosHerramienta = bloques.filter((b) => b.type === 'tool_use')
+
+      if (data.stop_reason !== 'tool_use' || usosHerramienta.length === 0) {
+        return textoBloques || 'No pude generar una respuesta. Intenta reformular tu pregunta.'
+      }
+
+      mensajesApi.push({ role: 'assistant', content: bloques })
+
+      const resultados = []
+      for (const uso of usosHerramienta) {
+        const input = uso.input as { codigo?: string } | undefined
+        const codigo = input?.codigo ?? ''
+        const texto = await buscarDocumento(String(codigo))
+        resultados.push({
+          type: 'tool_result',
+          tool_use_id: uso.id,
+          content:
+            texto ??
+            `No se encontró el documento "${codigo}" o no se pudo leer su contenido. Continúa con la información del catálogo disponible y acláralo en tu respuesta si es relevante.`,
+        })
+      }
+      mensajesApi.push({ role: 'user', content: resultados })
     }
 
-    const data = await respuesta.json()
-    const texto = data.content
-      ?.filter((b: { type: string }) => b.type === 'text')
-      .map((b: { text: string }) => b.text)
-      .join('\n')
-
-    return texto || 'No pude generar una respuesta. Intenta reformular tu pregunta.'
+    return 'Tu Asesor tardó demasiado consultando los documentos internos. Intenta reformular tu pregunta.'
   } catch {
     return 'Tu Asesor no pudo responder por un error de conexión. Intenta de nuevo.'
   }
