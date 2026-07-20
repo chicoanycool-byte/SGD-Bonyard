@@ -11,6 +11,7 @@ export default async function NotificacionesPage() {
     .from('notificaciones')
     .select('id, tipo, mensaje, leido, creado_en')
     .eq('usuario_id', quien.id)
+    .eq('leido', false)
     .order('creado_en', { ascending: false })
     .limit(50)
 
