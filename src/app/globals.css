@@ -1,32 +1,39 @@
-@import "tailwindcss";
+/* ============================================================
+   BON YARD — Tokens de marca (Tailwind v4, sintaxis @theme)
+   Extraídos del Manual de Identidad Corporativa.
+   Pega este bloque dentro de tu globals.css existente,
+   junto a tu @theme actual (o fusiona las variables).
+   ============================================================ */
 
-:root {
-  --background: #f4f6f6;
-  --foreground: #3a3936;
+@theme {
+  /* Verde-teal oscuro institucional (usado en fondos oscuros del manual) */
+  --color-brand-900: #0f2422;
+  --color-brand-800: #142e2b;
+  --color-brand-700: #1b3c37;
 
-  --by-primary: #08495c;
-  --by-primary-dark: #063847;
-  --by-accent: #50c0e8;
-  --by-success: #67b691;
-  --by-gray-light: #716d70;
-  --by-gray-dark: #3a3936;
+  /* Degradado de la "felcha" del logo: azul-teal -> verde */
+  --color-brand-teal: #2296ad;
+  --color-brand-teal-light: #4fb8cf;
+  --color-brand-green: #3fae7a;
+  --color-brand-green-light: #6fcf9c;
+
+  /* Gris institucional (wordmark BON/YARD) */
+  --color-brand-gray: #6f6f6f;
+  --color-brand-gray-dark: #4a4a4a;
+
+  /* Neutros de interfaz */
+  --color-surface: #f5f7f7;
+  --color-surface-card: #ffffff;
+  --color-border-subtle: #e6e9e8;
+
+  /* Semánticos, mapeados a la paleta de marca en vez de azul/rojo genéricos */
+  --color-status-ok: #3fae7a;      /* verde marca */
+  --color-status-warn: #d99a1f;
+  --color-status-danger: #c94f4f;
+  --color-status-info: #2296ad;    /* teal marca */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-by-primary: var(--by-primary);
-  --color-by-primary-dark: var(--by-primary-dark);
-  --color-by-accent: var(--by-accent);
-  --color-by-success: var(--by-success);
-  --color-by-gray-light: var(--by-gray-light);
-  --color-by-gray-dark: var(--by-gray-dark);
-  --font-sans: Arial, Helvetica, sans-serif;
-  --font-mono: ui-monospace, monospace;
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Gradiente de marca reutilizable (para el símbolo/acentos, como el logo) */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--color-brand-teal) 0%, var(--color-brand-green) 100%);
 }
