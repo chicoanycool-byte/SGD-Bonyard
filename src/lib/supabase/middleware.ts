@@ -41,5 +41,27 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Heartbeat de actividad: actualiza cuánto tiempo lleva navegando la sesión actual,
+  // para las métricas de acceso del Coordinador SGI. Throttleado a 1 vez por minuto.
+  if (user) {
+    const sesionId = request.cookies.get('sgd_sesion_id')?.value
+    const ultimoHb = request.cookies.get('sgd_hb')?.value
+    const ahora = Date.now()
+
+    if (sesionId && (!ultimoHb || ahora - Number(ultimoHb) > 60_000)) {
+      await supabase
+        .from('accesos_usuario')
+        .update({ ultima_actividad: new Date().toISOString() })
+        .eq('id', sesionId)
+
+      supabaseResponse.cookies.set('sgd_hb', String(ahora), {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+      })
+    }
+  }
+
   return supabaseResponse
 }
