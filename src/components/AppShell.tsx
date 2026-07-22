@@ -23,6 +23,7 @@ const NAV = [
   { href: '/pnc', label: 'Producto y Equipo No Conforme', soloCoordinador: false },
   { href: '/pendientes', label: 'Ver lista de pendientes', soloCoordinador: false },
   { href: '/usuarios', label: 'Usuarios', soloCoordinador: true },
+  { href: '/metricas-acceso', label: 'Métricas de acceso', soloCoordinador: true },
   { href: '/asesor', label: 'Tu Asesor Bonyard', soloCoordinador: false, siempre: true },
 ]
 
