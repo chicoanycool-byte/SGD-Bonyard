@@ -18,6 +18,7 @@ export default async function DocumentosPage() {
         <DocumentosTabla
           documentos={documentos ?? []}
           puedeGestionar={false}
+          permitirDescarga={false}
         />
       </div>
     </AppShell>
