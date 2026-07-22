@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 
-const ROLES_GESTION = ['coordinador_sgi', 'director', 'gerente', 'jefe', 'supervisor']
+const ROLES_GESTION = ['coordinador_sgi']
 
 export type EstadoSubirDocumento = {
   error?: string
