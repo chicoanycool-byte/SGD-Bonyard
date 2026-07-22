@@ -1,22 +1,19 @@
 import {
-  FileCheck2,
-  RefreshCcw,
-  AlertOctagon,
-  GraduationCap,
   ClipboardList,
+  FileEdit,
+  AlertOctagon,
+  MessageSquareWarning,
+  Bell,
   ShieldCheck,
   Users,
-  Bell,
   ChevronRight,
 } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import TrendChart from "./TrendChart";
 import ProcessBar from "./ProcessBar";
+import { ROL_LABEL } from "@/lib/permisos";
+import { config } from "@/lib/config";
 
-// ---------------------------------------------------------------
-// Tipos — reemplaza estos mocks por tus queries reales a Supabase
-// (pendientes, notificaciones, ac_ap, pnc, indicadores, etc.)
-// ---------------------------------------------------------------
 type Pendiente = {
   id: string;
   titulo: string;
@@ -34,22 +31,24 @@ type Notificacion = {
 
 type DashboardHomeProps = {
   userName: string;
+  rol: string;
   pendientes: Pendiente[];
   notificaciones: Notificacion[];
   kpis: {
-    cumplimientoDocumental: number;
-    cumplimientoEntrenamiento: number;
+    cumplimientoIndicadores: number;
+    acAbiertas: number;
+    quejasAbiertas: number;
     pncAbiertas: number;
-    capaEfectividad: number;
+    acEfectividad: number;
   };
   tendenciaPNC: { label: string; value: number }[];
   procesos: { label: string; percent: number }[];
   resumen: {
     tareasPendientes: number;
     documentosPorAprobar: number;
-    documentosPorRevisar: number;
     accionesVencidas: number;
-    entrenamientosPendientes: number;
+    quejasAbiertas: number;
+    notificacionesNoLeidas: number;
   };
 };
 
@@ -61,6 +60,7 @@ const prioridadStyles: Record<Pendiente["prioridad"], string> = {
 
 export default function DashboardHome({
   userName,
+  rol,
   pendientes,
   notificaciones,
   kpis,
@@ -69,16 +69,12 @@ export default function DashboardHome({
   resumen,
 }: DashboardHomeProps) {
   return (
-    <div className="p-4 lg:p-8 space-y-6 bg-surface min-h-screen">
-      {/* Encabezado */}
+    <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold text-brand-900">
-          ¡Bienvenido, {userName}!
-        </h1>
-        <p className="text-sm text-brand-gray">Coordinador de Sistema de Gestión Integral</p>
+        <h1 className="text-xl font-semibold text-brand-900">¡Bienvenido, {userName}!</h1>
+        <p className="text-sm text-brand-gray">{ROL_LABEL[rol] ?? rol}</p>
       </div>
 
-      {/* Tarjetas resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <SummaryCard
           icon={ClipboardList}
@@ -89,41 +85,40 @@ export default function DashboardHome({
           linkLabel="Ver mis tareas"
         />
         <SummaryCard
-          icon={FileCheck2}
+          icon={FileEdit}
           iconBg="bg-status-ok"
-          label="Documentos por aprobar"
+          label="Solicitudes de documentos pendientes"
           value={resumen.documentosPorAprobar}
-          href="/documentos?estado=aprobacion"
-          linkLabel="Ir a aprobaciones"
-        />
-        <SummaryCard
-          icon={RefreshCcw}
-          iconBg="bg-brand-green"
-          label="Documentos próximos a revisión"
-          value={resumen.documentosPorRevisar}
-          href="/documentos?estado=revision"
-          linkLabel="Ver calendario"
+          href="/solicitudes"
+          linkLabel="Ver solicitudes"
         />
         <SummaryCard
           icon={AlertOctagon}
           iconBg="bg-status-warn"
-          label="Acciones vencidas"
+          label="Acciones correctivas vencidas"
           value={resumen.accionesVencidas}
-          href="/ac-ap?estado=vencida"
+          href="/ac-ap"
           linkLabel="Ver AC/AP"
         />
         <SummaryCard
-          icon={GraduationCap}
+          icon={MessageSquareWarning}
+          iconBg="bg-brand-green"
+          label="Quejas abiertas"
+          value={resumen.quejasAbiertas}
+          href="/quejas"
+          linkLabel="Ver quejas"
+        />
+        <SummaryCard
+          icon={Bell}
           iconBg="bg-brand-teal-light"
-          label="Entrenamientos pendientes"
-          value={resumen.entrenamientosPendientes}
-          href="/training"
-          linkLabel="Ir a Training"
+          label="Notificaciones sin leer"
+          value={resumen.notificacionesNoLeidas}
+          href="/notificaciones"
+          linkLabel="Ver notificaciones"
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Mis pendientes */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div className="xl:col-span-2 bg-surface-card rounded-xl border border-border-subtle p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-brand-900">Mis pendientes</h2>
@@ -131,16 +126,14 @@ export default function DashboardHome({
               Ver todos <ChevronRight size={14} />
             </a>
           </div>
+          {pendientes.length === 0 && (
+            <p className="text-sm text-brand-gray py-4">No tienes pendientes abiertos. 🎉</p>
+          )}
           <div className="divide-y divide-border-subtle">
             {pendientes.map((p) => (
-              <a
-                key={p.id}
-                href={`/pendientes/${p.id}`}
-                className="flex items-center gap-4 py-3 group"
-              >
+              <a key={p.id} href="/pendientes" className="flex items-center gap-4 py-3 group">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-brand-900 truncate">{p.titulo}</p>
-                  <p className="text-xs text-brand-gray">{p.documento}</p>
                 </div>
                 <span className="hidden sm:inline text-xs text-brand-gray-dark">{p.tipo}</span>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${prioridadStyles[p.prioridad]}`}>
@@ -153,12 +146,14 @@ export default function DashboardHome({
           </div>
         </div>
 
-        {/* Alertas y notificaciones */}
         <div className="bg-surface-card rounded-xl border border-border-subtle p-5">
           <div className="flex items-center gap-2 mb-4">
             <Bell size={16} className="text-brand-teal" />
             <h2 className="font-semibold text-brand-900">Alertas y notificaciones</h2>
           </div>
+          {notificaciones.length === 0 && (
+            <p className="text-sm text-brand-gray">Sin notificaciones pendientes.</p>
+          )}
           <ul className="space-y-4">
             {notificaciones.map((n) => (
               <li key={n.id} className="text-sm">
@@ -172,21 +167,19 @@ export default function DashboardHome({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* KPIs + tendencia */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
         <div className="xl:col-span-2 bg-surface-card rounded-xl border border-border-subtle p-5">
-          <h2 className="font-semibold text-brand-900 mb-4">Indicadores (KPIs)</h2>
+          <h2 className="font-semibold text-brand-900 mb-4">Indicadores</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Kpi label="Cumplimiento Documental" value={kpis.cumplimientoDocumental} meta="≥ 90%" />
-            <Kpi label="Cumplimiento Entrenamiento" value={kpis.cumplimientoEntrenamiento} meta="≥ 90%" />
+            <Kpi label="Indicadores en meta" value={kpis.cumplimientoIndicadores} meta="≥ 90%" />
+            <Kpi label="AC/AP abiertas" value={kpis.acAbiertas} meta="Al mínimo" isCount />
             <Kpi label="No Conformidades Abiertas" value={kpis.pncAbiertas} meta="≤ 10" isCount />
-            <Kpi label="Efectividad CAPA" value={kpis.capaEfectividad} meta="≥ 90%" />
+            <Kpi label="Efectividad AC/AP (cierre)" value={kpis.acEfectividad} meta="≥ 90%" />
           </div>
-          <p className="text-xs text-brand-gray mb-1">Tendencia de No Conformidades (últimos meses)</p>
+          <p className="text-xs text-brand-gray mb-1">Producto/Equipo No Conforme (últimos 6 meses)</p>
           <TrendChart points={tendenciaPNC} />
         </div>
 
-        {/* Estado de procesos clave */}
         <div className="bg-surface-card rounded-xl border border-border-subtle p-5">
           <h2 className="font-semibold text-brand-900 mb-2">Estado de procesos clave</h2>
           <div>
@@ -198,7 +191,7 @@ export default function DashboardHome({
       </div>
 
       <p className="text-xs text-brand-gray flex items-center gap-2">
-        <Users size={14} /> Bon Yard Servicios · SQF · ISO 9001:2015
+        <Users size={14} /> {config.empresaNombre} · {config.normas}
       </p>
     </div>
   );
