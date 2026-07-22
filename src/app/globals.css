@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ============================================================
    BON YARD — Tokens de marca (Tailwind v4, sintaxis @theme)
    Extraídos del Manual de Identidad Corporativa.
@@ -31,6 +33,18 @@
   --color-status-warn: #d99a1f;
   --color-status-danger: #c94f4f;
   --color-status-info: #2296ad;    /* teal marca */
+
+  /* ------------------------------------------------------------
+     Alias "by-*" — usados en todo el resto de la app (header,
+     sidebar, botones, formularios). Mapeados a la misma paleta
+     de marca de arriba para que TODA la interfaz sea consistente.
+     ------------------------------------------------------------ */
+  --color-by-primary: var(--color-brand-900);
+  --color-by-primary-dark: var(--color-brand-800);
+  --color-by-accent: var(--color-brand-teal);
+  --color-by-gray-dark: var(--color-brand-gray-dark);
+  --color-by-gray-light: var(--color-brand-gray);
+  --color-background: var(--color-surface);
 }
 
 /* Gradiente de marca reutilizable (para el símbolo/acentos, como el logo) */
