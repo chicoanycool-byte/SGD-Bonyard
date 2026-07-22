@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { Search } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import BotonesAtrasActualizar from './BotonesAtrasActualizar'
 import MenuLateral from './MenuLateral'
@@ -77,6 +78,21 @@ export default async function AppShell({
             SGD Bonyard <span className="text-by-accent">v1.0</span>
           </span>
         </div>
+        <form action="/documentos" className="hidden max-w-sm flex-1 md:mx-4 md:block">
+          <div className="relative">
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-white/50"
+            />
+            <input
+              type="text"
+              name="q"
+              placeholder="Buscar documentos..."
+              className="h-8 w-full rounded-md border border-white/10 bg-white/10 pl-8 pr-3 text-[12.5px] text-white placeholder:text-white/50 outline-none focus:border-by-accent focus:bg-white/15"
+            />
+          </div>
+        </form>
+
         <div className="flex items-center gap-3">
           <Link href="/notificaciones" className="relative flex h-6 w-6 items-center justify-center">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" className="h-[18px] w-[18px]">
