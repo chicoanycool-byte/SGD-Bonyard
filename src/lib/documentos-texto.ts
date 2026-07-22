@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse'
+import { extractText, getDocumentProxy } from 'unpdf'
 import { createClient } from '@/lib/supabase/server'
 
 const LIMITE_CARACTERES = 15000
@@ -34,10 +34,10 @@ export async function obtenerTextoDocumento(codigo: string): Promise<string | nu
   if (error || !archivo) return null
 
   try {
-    const buffer = Buffer.from(await archivo.arrayBuffer())
-    const parser = new PDFParse({ data: buffer })
-    const resultado = await parser.getText()
-    let texto = (resultado.text || '').trim()
+    const buffer = new Uint8Array(await archivo.arrayBuffer())
+    const pdf = await getDocumentProxy(buffer)
+    const { text: textoExtraido } = await extractText(pdf, { mergePages: true })
+    let texto = (textoExtraido || '').trim()
     if (!texto) return null
 
     if (texto.length > LIMITE_CARACTERES) {
