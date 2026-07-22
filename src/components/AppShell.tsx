@@ -8,7 +8,7 @@ import { ROL_LABEL } from '@/lib/permisos'
 const NAV = [
   { href: '/inicio', label: 'Inicio', soloCoordinador: false, siempre: true },
   { href: '/documentos', label: 'Ver documentos del SGI', soloCoordinador: false },
-  { href: '/documentos-alta', label: 'Alta o actualización de documentos', soloCoordinador: false },
+  { href: '/documentos-alta', label: 'Alta o actualización de documentos', soloCoordinador: true },
   { href: '/solicitudes', label: 'Solicitud de cambio de documentos', soloCoordinador: false },
   { href: '/auditorias', label: 'Auditorías', soloCoordinador: false },
   { href: '/quejas', label: 'Quejas', soloCoordinador: false },
