@@ -109,6 +109,7 @@ export default async function InicioPage() {
 
   const data = {
     userName: quien.nombre.split(" ")[0],
+    usuario: quien.usuario,
     resumen: {
       tareasPendientes,
       documentosPorAprobar: solicitudesPendientes,
