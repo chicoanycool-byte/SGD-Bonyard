@@ -71,12 +71,16 @@ export async function crearUsuario(
 
   const usuario = String(formData.get('usuario') ?? '').trim().toLowerCase()
   const nombre = String(formData.get('nombre') ?? '').trim()
-  const correo = String(formData.get('correo') ?? '').trim().toLowerCase()
+  let correo = String(formData.get('correo') ?? '').trim().toLowerCase()
   const puesto = String(formData.get('puesto') ?? '').trim()
   const rol = String(formData.get('rol') ?? '')
 
-  if (!usuario || !nombre || !correo || !rol) {
+  if (!usuario || !nombre || !rol) {
     return { error: 'Completa todos los campos obligatorios.' }
+  }
+
+  if (!correo) {
+    correo = `${usuario}@bonyard.mx`
   }
 
   if (!(ROLES as readonly string[]).includes(rol)) {
