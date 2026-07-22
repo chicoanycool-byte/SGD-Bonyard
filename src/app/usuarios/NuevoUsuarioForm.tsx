@@ -55,13 +55,12 @@ export default function NuevoUsuarioForm() {
         </div>
         <div>
           <label className="mb-1 block text-[11px] text-by-gray-dark">
-            Correo
+            Correo (opcional)
           </label>
           <input
             name="correo"
             type="email"
-            placeholder="nombre@bonyard.mx"
-            required
+            placeholder="nombre@bonyard.mx (si se deja vacío, se genera automático)"
             className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           />
         </div>
