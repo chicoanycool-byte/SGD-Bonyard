@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Home,
   FileText,
@@ -113,6 +114,18 @@ export default function MenuLateral({ items, activo }: { items: Item[]; activo: 
               Cerrar sesión
             </button>
           </form>
+        </div>
+
+        <div className="border-t border-white/10 px-4 py-4">
+          <div className="mb-1.5 flex w-fit items-center gap-1.5 rounded-md bg-white/95 px-2 py-1">
+            <Image src="/logo-bonyard.png" alt="Bonyard" width={64} height={21} className="h-4 w-auto" />
+          </div>
+          <p className="text-[10px] text-white/50">3PL Warehousing &amp; Logistics</p>
+          <p className="mt-1.5 text-[9.5px] leading-snug text-white/35">
+            © 2026 Bonyard Servicios.
+            <br />
+            Todos los derechos reservados.
+          </p>
         </div>
       </nav>
     </>
