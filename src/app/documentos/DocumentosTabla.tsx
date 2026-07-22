@@ -17,9 +17,11 @@ type Documento = {
 export default function DocumentosTabla({
   documentos,
   puedeGestionar,
+  permitirDescarga = true,
 }: {
   documentos: Documento[]
   puedeGestionar: boolean
+  permitirDescarga?: boolean
 }) {
   const [busqueda, setBusqueda] = useState('')
   const [pending, startTransition] = useTransition()
@@ -108,13 +110,15 @@ export default function DocumentosTabla({
                   >
                     {viendo === d.id ? 'Abriendo…' : 'Ver'}
                   </button>
-                  <button
-                    onClick={() => descargar(d)}
-                    disabled={descargando === d.id}
-                    className="text-[12px] text-by-accent hover:underline disabled:opacity-50"
-                  >
-                    {descargando === d.id ? 'Generando…' : 'Descargar'}
-                  </button>
+                  {permitirDescarga && (
+                    <button
+                      onClick={() => descargar(d)}
+                      disabled={descargando === d.id}
+                      className="text-[12px] text-by-accent hover:underline disabled:opacity-50"
+                    >
+                      {descargando === d.id ? 'Generando…' : 'Descargar'}
+                    </button>
+                  )}
                   {puedeGestionar && (
                     <button
                       onClick={() => eliminar(d)}
