@@ -1,33 +1,20 @@
-// EJEMPLO de cómo envolver tus páginas del panel con Sidebar + Topbar.
-// Copia el patrón dentro de tu app/(dashboard)/layout.tsx real,
-// usando ahí tu lógica actual de sesión/rol (usuario_actual()).
+import type { Metadata } from "next";
+import "./globals.css";
+import { config } from "@/lib/config";
 
-import Sidebar from "@/components/layout/Sidebar";
-import Topbar from "@/components/layout/Topbar";
+export const metadata: Metadata = {
+  title: config.appNombre,
+  description: `Sistema de Gestión Documental — ${config.empresaNombre}`,
+};
 
-export default function DashboardLayout({
+export default function RootLayout({
   children,
-  // En tu layout real, obtén esto de tu sesión/Supabase, no como prop.
-  userName = "Carlos Hernández",
-  userRole = "Coordinador SGI",
-  notificationCount = 3,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-  userName?: string;
-  userRole?: string;
-  notificationCount?: number;
-}) {
+}>) {
   return (
-    <div className="flex min-h-screen bg-surface">
-      <Sidebar />
-      <div className="flex-1 min-w-0">
-        <Topbar
-          userName={userName}
-          userRole={userRole}
-          notificationCount={notificationCount}
-        />
-        {children}
-      </div>
-    </div>
+    <html lang="es" className="h-full antialiased">
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
   );
 }
