@@ -1,145 +1,78 @@
-import AppShell from '@/components/AppShell'
-import { requerirUsuario } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
+// EJEMPLO de app/inicio/page.tsx (Server Component).
+// Reemplaza el objeto `data` por queries reales a Supabase:
+// - resumen: counts de pendientes, documentos, ac_ap vencidas, training
+// - notificaciones: tabla `notificaciones` filtrada por usuario_actual()
+// - kpis / tendenciaPNC: agregados desde pnc / indicadores
+// - procesos: % calculado por módulo (documental, auditorías, etc.)
 
-const TIPO_LABEL: Record<string, string> = {
-  solicitud_documento: 'Solicitud de documento',
-  auditoria: 'Auditoría',
-  plan_reaccion: 'Plan de reacción',
-  evaluacion_auditor: 'Evaluación de auditor',
-  queja: 'Queja',
-  ac_ap: 'AC / AP',
-  indicador: 'Indicador',
-  proveedor: 'Proveedor',
-  recorrido_bpa: 'Recorrido BPA',
-  verificacion_sgi: 'Verificación SGI',
-  sistema: 'Sistema',
-}
-
-function tiempoRelativo(fechaIso: string) {
-  const diffMs = Date.now() - new Date(fechaIso).getTime()
-  const minutos = Math.floor(diffMs / 60000)
-  if (minutos < 1) return 'hace un momento'
-  if (minutos < 60) return `hace ${minutos} min`
-  const horas = Math.floor(minutos / 60)
-  if (horas < 24) return `hace ${horas} h`
-  const dias = Math.floor(horas / 24)
-  return `hace ${dias} d`
-}
+import DashboardHome from "@/components/dashboard/DashboardHome";
 
 export default async function InicioPage() {
-  const usuario = await requerirUsuario()
-  const supabase = await createClient()
-  const esDireccion = ['coordinador_sgi', 'gerente', 'director'].includes(
-    usuario.rol
-  )
+  // const supabase = await createClient();
+  // const { data: pendientes } = await supabase.from("pendientes").select("*")...
 
-  const [pendientesAbiertos, notificacionesNoLeidas, usuariosActivos, notificacionesRecientes] =
-    await Promise.all([
-      supabase
-        .from('pendientes')
-        .select('id', { count: 'exact', head: true })
-        .eq('estatus', 'abierto'),
-      supabase
-        .from('notificaciones')
-        .select('id', { count: 'exact', head: true })
-        .eq('leido', false),
-      esDireccion
-        ? supabase
-            .from('usuarios')
-            .select('id', { count: 'exact', head: true })
-            .eq('estatus', 'activo')
-        : Promise.resolve({ count: null }),
-      supabase
-        .from('notificaciones')
-        .select('id, tipo, mensaje, leido, creado_en')
-        .order('creado_en', { ascending: false })
-        .limit(6),
-    ])
-
-  const tarjetas = [
-    {
-      label: 'Pendientes abiertos',
-      valor: pendientesAbiertos.count ?? 0,
-      estilo: 'bg-[#f4f6f6] text-by-primary',
+  const data = {
+    userName: "Carlos",
+    resumen: {
+      tareasPendientes: 18,
+      documentosPorAprobar: 7,
+      documentosPorRevisar: 12,
+      accionesVencidas: 3,
+      entrenamientosPendientes: 5,
     },
-    {
-      label: 'Notificaciones sin leer',
-      valor: notificacionesNoLeidas.count ?? 0,
-      estilo: 'bg-[#f4f6f6] text-by-primary',
+    pendientes: [
+      {
+        id: "1",
+        titulo: "Aprobar: PSG-14 Procedimiento HACCP",
+        documento: "DOC-PR-0147 · Revisión 05",
+        tipo: "Aprobación",
+        prioridad: "Alta" as const,
+        vencimiento: "20/ago",
+      },
+      {
+        id: "2",
+        titulo: "Revisar: FSG-19 Matriz de Requisitos Legales",
+        documento: "DOC-FO-0218 · Revisión 03",
+        tipo: "Revisión",
+        prioridad: "Media" as const,
+        vencimiento: "22/ago",
+      },
+      {
+        id: "3",
+        titulo: "AC-24-0037: Investigación raíz",
+        documento: "Correctiva",
+        tipo: "AC/AP",
+        prioridad: "Alta" as const,
+        vencimiento: "23/ago",
+      },
+    ],
+    notificaciones: [
+      { id: "1", texto: "10 documentos vencen en los próximos 30 días.", href: "/documentos?vence=30" },
+      { id: "2", texto: "7 documentos pendientes de aprobación.", href: "/documentos?estado=aprobacion" },
+      { id: "3", texto: "3 acciones correctivas vencidas. Requieren atención inmediata.", href: "/ac-ap?estado=vencida" },
+    ],
+    kpis: {
+      cumplimientoDocumental: 92,
+      cumplimientoEntrenamiento: 88,
+      pncAbiertas: 8,
+      capaEfectividad: 95,
     },
-    ...(esDireccion
-      ? [
-          {
-            label: 'Usuarios activos',
-            valor: usuariosActivos.count ?? 0,
-            estilo: 'bg-[#eaf5f0] text-[#3d6b53]',
-          },
-        ]
-      : []),
-  ]
+    tendenciaPNC: [
+      { label: "Mar", value: 22 },
+      { label: "Abr", value: 18 },
+      { label: "May", value: 16 },
+      { label: "Jun", value: 12 },
+      { label: "Jul", value: 9 },
+    ],
+    procesos: [
+      { label: "Control Documental", percent: 92 },
+      { label: "Recorridos BPA", percent: 94 },
+      { label: "Matriz Legal", percent: 90 },
+      { label: "Auditorías Internas", percent: 85 },
+      { label: "AC/AP", percent: 78 },
+      { label: "Proveedores Críticos", percent: 88 },
+    ],
+  };
 
-  const notificaciones = notificacionesRecientes.data ?? []
-
-  return (
-    <AppShell nombre={usuario.nombre} rol={usuario.rol} usuarioId={usuario.id} activo="/inicio">
-      <div className="flex flex-col gap-4">
-        <div>
-          <p className="mb-1 text-[14px] font-medium text-by-gray-dark">
-            Bienvenido, {usuario.nombre.split(' ')[0]}
-          </p>
-          <p className="text-[12px] text-by-gray-light">
-            Resumen general del sistema de gestión.
-          </p>
-        </div>
-
-        <div
-          className="grid gap-3"
-          style={{ gridTemplateColumns: `repeat(${tarjetas.length}, 1fr)` }}
-        >
-          {tarjetas.map((t) => (
-            <div key={t.label} className={`rounded-lg px-4 py-3 ${t.estilo}`}>
-              <p className="mb-1 text-[11px] opacity-80">{t.label}</p>
-              <p className="text-[22px] font-medium">{t.valor}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-black/5 bg-white p-4">
-          <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
-            Notificaciones recientes
-          </p>
-          {notificaciones.length === 0 ? (
-            <p className="text-[12px] text-by-gray-light">
-              No tienes notificaciones todavía.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {notificaciones.map((n) => (
-                <div
-                  key={n.id}
-                  className="flex items-center justify-between gap-3 rounded-md bg-[#f4f6f6] px-3 py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    {!n.leido && (
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-by-accent" />
-                    )}
-                    <span className="text-[12px] text-by-gray-dark">
-                      <span className="text-by-gray-light">
-                        [{TIPO_LABEL[n.tipo] ?? n.tipo}]
-                      </span>{' '}
-                      {n.mensaje}
-                    </span>
-                  </div>
-                  <span className="shrink-0 text-[11px] text-by-gray-light">
-                    {tiempoRelativo(n.creado_en)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </AppShell>
-  )
+  return <DashboardHome {...data} />;
 }
