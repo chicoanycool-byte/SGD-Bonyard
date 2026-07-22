@@ -53,6 +53,13 @@ export default async function AppShell({
     .eq('usuario_id', usuarioId)
     .eq('leido', false)
 
+  const { data: datosUsuario } = await supabase
+    .from('usuarios')
+    .select('puesto')
+    .eq('id', usuarioId)
+    .maybeSingle()
+  const puesto = datosUsuario?.puesto?.trim()
+
   const itemsVisibles = NAV.filter((item) => !item.soloCoordinador || esCoordinador)
 
   return (
@@ -89,6 +96,7 @@ export default async function AppShell({
               <p className="text-[12px] text-white">{nombre}</p>
               <p className="text-[10.5px] text-by-accent">
                 {ROL_LABEL[rol] ?? rol}
+                {puesto ? ` · ${puesto}` : ''}
               </p>
             </div>
           </div>
