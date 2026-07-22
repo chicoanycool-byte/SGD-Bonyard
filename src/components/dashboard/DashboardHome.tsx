@@ -11,6 +11,7 @@ import {
 import SummaryCard from "./SummaryCard";
 import TrendChart from "./TrendChart";
 import ProcessBar from "./ProcessBar";
+import AccesosRapidos from "./AccesosRapidos";
 import { ROL_LABEL } from "@/lib/permisos";
 import { config } from "@/lib/config";
 
@@ -31,6 +32,7 @@ type Notificacion = {
 
 type DashboardHomeProps = {
   userName: string;
+  usuario: string;
   rol: string;
   pendientes: Pendiente[];
   notificaciones: Notificacion[];
@@ -60,6 +62,7 @@ const prioridadStyles: Record<Pendiente["prioridad"], string> = {
 
 export default function DashboardHome({
   userName,
+  usuario,
   rol,
   pendientes,
   notificaciones,
@@ -190,9 +193,19 @@ export default function DashboardHome({
         </div>
       </div>
 
-      <p className="text-xs text-brand-gray flex items-center gap-2">
-        <Users size={14} /> {config.empresaNombre} · {config.normas}
-      </p>
+      <AccesosRapidos esCoordinador={rol === "coordinador_sgi"} />
+
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-xl border border-border-subtle bg-surface-card px-5 py-3 text-xs text-brand-gray">
+        <span className="flex items-center gap-1.5">
+          <Users size={13} /> Usuario: <span className="text-brand-gray-dark">{usuario}</span>
+        </span>
+        <span>
+          Rol: <span className="text-brand-gray-dark">{ROL_LABEL[rol] ?? rol}</span>
+        </span>
+        <span>
+          {config.empresaNombre} · {config.normas}
+        </span>
+      </div>
     </div>
   );
 }
