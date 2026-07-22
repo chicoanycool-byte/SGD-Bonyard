@@ -1,78 +1,155 @@
-// EJEMPLO de app/inicio/page.tsx (Server Component).
-// Reemplaza el objeto `data` por queries reales a Supabase:
-// - resumen: counts de pendientes, documentos, ac_ap vencidas, training
-// - notificaciones: tabla `notificaciones` filtrada por usuario_actual()
-// - kpis / tendenciaPNC: agregados desde pnc / indicadores
-// - procesos: % calculado por módulo (documental, auditorías, etc.)
-
+import AppShell from "@/components/AppShell";
 import DashboardHome from "@/components/dashboard/DashboardHome";
+import { requerirUsuario } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+
+function mesesAtras(n: number) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - n);
+  return d;
+}
+
+async function contar(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  tabla: string,
+  filtros: (q: any) => any
+) {
+  const { count } = await filtros(
+    supabase.from(tabla).select("id", { count: "exact", head: true })
+  );
+  return count ?? 0;
+}
 
 export default async function InicioPage() {
-  // const supabase = await createClient();
-  // const { data: pendientes } = await supabase.from("pendientes").select("*")...
+  const quien = await requerirUsuario();
+  const supabase = await createClient();
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const [
+    tareasPendientes,
+    solicitudesPendientes,
+    accionesVencidas,
+    notificacionesNoLeidas,
+    quejasAbiertas,
+    pncAbiertas,
+    acAbiertas,
+    acCerradas,
+    { data: pendientesLista },
+    { data: notificacionesLista },
+    { data: indicadoresValores },
+    { data: pncSeisMeses },
+    auditoriasTotal,
+    auditoriasCerradas,
+    quejasTotal,
+    quejasCerradas,
+    acTotal,
+    acCerradasTotal,
+    pncTotal,
+    pncCerradasTotal,
+  ] = await Promise.all([
+    contar(supabase, "pendientes", (q) => q.eq("usuario_id", quien.id).neq("estatus", "cerrado")),
+    contar(supabase, "solicitudes_documento", (q) => q.eq("estatus", "pendiente")),
+    contar(supabase, "acciones_correctivas", (q) =>
+      q.lt("fecha_compromiso", hoy).not("estatus", "in", "(cerrada,rechazada)")
+    ),
+    contar(supabase, "notificaciones", (q) => q.eq("usuario_id", quien.id).eq("leido", false)),
+    contar(supabase, "quejas", (q) => q.neq("estatus", "cerrada")),
+    contar(supabase, "pnc_registros", (q) => q.eq("estatus", "abierto")),
+    contar(supabase, "acciones_correctivas", (q) => q.neq("estatus", "cerrada")),
+    contar(supabase, "acciones_correctivas", (q) => q.eq("estatus", "cerrada")),
+    supabase
+      .from("pendientes")
+      .select("id, descripcion, modulo, fecha_limite")
+      .eq("usuario_id", quien.id)
+      .neq("estatus", "cerrado")
+      .order("fecha_limite", { ascending: true, nullsFirst: false })
+      .limit(5),
+    supabase
+      .from("notificaciones")
+      .select("id, mensaje, tipo")
+      .eq("usuario_id", quien.id)
+      .eq("leido", false)
+      .order("creado_en", { ascending: false })
+      .limit(5),
+    supabase.from("indicadores_valores").select("valor, requiere_ac, indicador_id"),
+    supabase
+      .from("pnc_registros")
+      .select("fecha")
+      .gte("fecha", mesesAtras(5).toISOString().slice(0, 10)),
+    contar(supabase, "auditorias", (q) => q),
+    contar(supabase, "auditorias", (q) => q.eq("estatus", "cerrada")),
+    contar(supabase, "quejas", (q) => q),
+    contar(supabase, "quejas", (q) => q.eq("estatus", "cerrada")),
+    contar(supabase, "acciones_correctivas", (q) => q),
+    contar(supabase, "acciones_correctivas", (q) => q.eq("estatus", "cerrada")),
+    contar(supabase, "pnc_registros", (q) => q),
+    contar(supabase, "pnc_registros", (q) => q.eq("estatus", "cerrado")),
+  ]);
+
+  const porcentaje = (parte: number, total: number) =>
+    total > 0 ? Math.round((parte / total) * 100) : 0;
+
+  // Tendencia PNC: conteo por mes de los últimos 6 meses
+  const meses = Array.from({ length: 6 }).map((_, i) => mesesAtras(5 - i));
+  const tendenciaPNC = meses.map((m) => {
+    const label = m.toLocaleDateString("es-MX", { month: "short" }).replace(".", "");
+    const inicio = new Date(m.getFullYear(), m.getMonth(), 1);
+    const fin = new Date(m.getFullYear(), m.getMonth() + 1, 1);
+    const value = (pncSeisMeses ?? []).filter((r) => {
+      const f = new Date(r.fecha as string);
+      return f >= inicio && f < fin;
+    }).length;
+    return { label: label.charAt(0).toUpperCase() + label.slice(1), value };
+  });
+
+  const cumplimientoIndicadores = porcentaje(
+    (indicadoresValores ?? []).filter((v) => v.valor !== null && !v.requiere_ac).length,
+    (indicadoresValores ?? []).filter((v) => v.valor !== null).length
+  );
 
   const data = {
-    userName: "Carlos",
+    userName: quien.nombre.split(" ")[0],
     resumen: {
-      tareasPendientes: 18,
-      documentosPorAprobar: 7,
-      documentosPorRevisar: 12,
-      accionesVencidas: 3,
-      entrenamientosPendientes: 5,
+      tareasPendientes,
+      documentosPorAprobar: solicitudesPendientes,
+      accionesVencidas,
+      quejasAbiertas,
+      notificacionesNoLeidas,
     },
-    pendientes: [
-      {
-        id: "1",
-        titulo: "Aprobar: PSG-14 Procedimiento HACCP",
-        documento: "DOC-PR-0147 · Revisión 05",
-        tipo: "Aprobación",
-        prioridad: "Alta" as const,
-        vencimiento: "20/ago",
-      },
-      {
-        id: "2",
-        titulo: "Revisar: FSG-19 Matriz de Requisitos Legales",
-        documento: "DOC-FO-0218 · Revisión 03",
-        tipo: "Revisión",
-        prioridad: "Media" as const,
-        vencimiento: "22/ago",
-      },
-      {
-        id: "3",
-        titulo: "AC-24-0037: Investigación raíz",
-        documento: "Correctiva",
-        tipo: "AC/AP",
-        prioridad: "Alta" as const,
-        vencimiento: "23/ago",
-      },
-    ],
-    notificaciones: [
-      { id: "1", texto: "10 documentos vencen en los próximos 30 días.", href: "/documentos?vence=30" },
-      { id: "2", texto: "7 documentos pendientes de aprobación.", href: "/documentos?estado=aprobacion" },
-      { id: "3", texto: "3 acciones correctivas vencidas. Requieren atención inmediata.", href: "/ac-ap?estado=vencida" },
-    ],
+    pendientes: (pendientesLista ?? []).map((p) => ({
+      id: p.id,
+      titulo: p.descripcion || "Pendiente",
+      documento: p.modulo,
+      tipo: p.modulo,
+      prioridad: (p.fecha_limite && p.fecha_limite < hoy ? "Alta" : "Media") as "Alta" | "Media",
+      vencimiento: p.fecha_limite
+        ? new Date(p.fecha_limite).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })
+        : "Sin fecha",
+    })),
+    notificaciones: (notificacionesLista ?? []).map((n) => ({
+      id: n.id,
+      texto: n.mensaje,
+      href: "/notificaciones",
+    })),
     kpis: {
-      cumplimientoDocumental: 92,
-      cumplimientoEntrenamiento: 88,
-      pncAbiertas: 8,
-      capaEfectividad: 95,
+      cumplimientoIndicadores,
+      acAbiertas,
+      quejasAbiertas,
+      pncAbiertas,
+      acEfectividad: porcentaje(acCerradas, acAbiertas + acCerradas),
     },
-    tendenciaPNC: [
-      { label: "Mar", value: 22 },
-      { label: "Abr", value: 18 },
-      { label: "May", value: 16 },
-      { label: "Jun", value: 12 },
-      { label: "Jul", value: 9 },
-    ],
+    tendenciaPNC,
     procesos: [
-      { label: "Control Documental", percent: 92 },
-      { label: "Recorridos BPA", percent: 94 },
-      { label: "Matriz Legal", percent: 90 },
-      { label: "Auditorías Internas", percent: 85 },
-      { label: "AC/AP", percent: 78 },
-      { label: "Proveedores Críticos", percent: 88 },
+      { label: "Auditorías", percent: porcentaje(auditoriasCerradas, auditoriasTotal) },
+      { label: "Quejas", percent: porcentaje(quejasCerradas, quejasTotal) },
+      { label: "Acciones Correctivas", percent: porcentaje(acCerradasTotal, acTotal) },
+      { label: "Producto No Conforme", percent: porcentaje(pncCerradasTotal, pncTotal) },
     ],
   };
 
-  return <DashboardHome {...data} />;
+  return (
+    <AppShell nombre={quien.nombre} rol={quien.rol} usuarioId={quien.id} activo="/inicio">
+      <DashboardHome {...data} rol={quien.rol} />
+    </AppShell>
+  );
 }
