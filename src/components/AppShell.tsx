@@ -95,8 +95,7 @@ export default async function AppShell({
             <div className="hidden leading-tight sm:block">
               <p className="text-[12px] text-white">{nombre}</p>
               <p className="text-[10.5px] text-by-accent">
-                {ROL_LABEL[rol] ?? rol}
-                {puesto ? ` · ${puesto}` : ''}
+                {puesto || ROL_LABEL[rol] || rol}
               </p>
             </div>
           </div>
