@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 export async function iniciarSesion(formData: FormData) {
@@ -32,6 +33,35 @@ export async function iniciarSesion(formData: FormData) {
 
   if (error) {
     redirect('/login?error=Usuario%20o%20contrase%C3%B1a%20incorrectos')
+  }
+
+  // Registrar el acceso para métricas del Coordinador SGI (no debe bloquear el login si falla)
+  try {
+    const { data: usuarioRow } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('correo', correo)
+      .maybeSingle()
+
+    if (usuarioRow) {
+      const { data: acceso } = await supabase
+        .from('accesos_usuario')
+        .insert({ usuario_id: usuarioRow.id })
+        .select('id')
+        .single()
+
+      if (acceso) {
+        const cookieStore = await cookies()
+        cookieStore.set('sgd_sesion_id', acceso.id, {
+          httpOnly: true,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 30,
+        })
+      }
+    }
+  } catch {
+    // no interrumpe el inicio de sesión si el registro de métricas falla
   }
 
   revalidatePath('/', 'layout')
