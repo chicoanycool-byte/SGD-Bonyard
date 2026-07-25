@@ -13,6 +13,8 @@ const ROL_LABEL: Record<string, string> = {
   gerente: 'Gerente',
   jefe: 'Jefe',
   supervisor: 'Supervisor',
+  auxiliar: 'Auxiliar',
+  montacarguista: 'Montacarguista',
 }
 
 const ESTATUS_ESTILO: Record<string, string> = {
@@ -28,15 +30,18 @@ export default async function UsuariosPage() {
   }
 
   const supabase = await createClient()
-  const { data: usuarios } = await supabase
-    .from('usuarios')
-    .select('id, usuario, nombre, correo, puesto, rol, estatus')
-    .order('nombre')
+  const [{ data: usuarios }, { data: puestos }] = await Promise.all([
+    supabase
+      .from('usuarios')
+      .select('id, usuario, nombre, correo, puesto, rol, estatus')
+      .order('nombre'),
+    supabase.from('puestos').select('id, nombre, rol_sistema').order('nombre'),
+  ])
 
   return (
     <AppShell nombre={quien.nombre} rol={quien.rol} usuarioId={quien.id} activo="/usuarios">
       <div className="flex flex-col gap-4">
-        <NuevoUsuarioForm />
+        <NuevoUsuarioForm puestos={puestos ?? []} />
 
         <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
           <table className="w-full text-left text-[13px]">
