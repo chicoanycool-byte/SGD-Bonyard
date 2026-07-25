@@ -8,6 +8,7 @@ import { ROL_LABEL } from '@/lib/permisos'
 
 const NAV = [
   { href: '/inicio', label: 'Inicio', soloCoordinador: false, siempre: true },
+  { href: '/recursos-humanos', label: 'Recursos Humanos', soloCoordinador: false },
   { href: '/documentos', label: 'Ver documentos del SGI', soloCoordinador: false },
   { href: '/documentos-alta', label: 'Alta o actualización de documentos', soloCoordinador: true },
   { href: '/solicitudes', label: 'Solicitud de cambio de documentos', soloCoordinador: false },
