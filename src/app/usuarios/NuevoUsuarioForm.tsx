@@ -1,28 +1,41 @@
 'use client'
 
-import { useActionState, useRef, useEffect } from 'react'
+import { useActionState, useRef, useEffect, useState } from 'react'
 import { crearUsuario, type EstadoCrearUsuario } from './actions'
 
-const ROLES: { value: string; label: string }[] = [
-  { value: 'coordinador_sgi', label: 'Coordinador SGI' },
-  { value: 'auxiliar_sgi', label: 'Auxiliar SGI' },
-  { value: 'director', label: 'Director' },
-  { value: 'gerente', label: 'Gerente' },
-  { value: 'jefe', label: 'Jefe' },
-  { value: 'supervisor', label: 'Supervisor' },
-]
+const ROL_LABEL: Record<string, string> = {
+  coordinador_sgi: 'Coordinador SGI',
+  director: 'Director',
+  gerente: 'Gerente',
+  jefe: 'Jefe',
+  supervisor: 'Supervisor',
+  auxiliar: 'Auxiliar',
+  montacarguista: 'Montacarguista',
+}
+
+type Puesto = { id: string; nombre: string; rol_sistema: string }
 
 const inicial: EstadoCrearUsuario = {}
 
-export default function NuevoUsuarioForm() {
+export default function NuevoUsuarioForm({ puestos }: { puestos: Puesto[] }) {
   const [estado, formAction, pending] = useActionState(crearUsuario, inicial)
   const formRef = useRef<HTMLFormElement>(null)
+  const [rolSeleccionado, setRolSeleccionado] = useState('')
+  const [puestoNombre, setPuestoNombre] = useState('')
 
   useEffect(() => {
     if (estado.passwordTemporal) {
       formRef.current?.reset()
+      setRolSeleccionado('')
+      setPuestoNombre('')
     }
   }, [estado.passwordTemporal])
+
+  function alCambiarPuesto(e: React.ChangeEvent<HTMLSelectElement>) {
+    const puesto = puestos.find((p) => p.id === e.target.value)
+    setRolSeleccionado(puesto?.rol_sistema ?? '')
+    setPuestoNombre(puesto?.nombre ?? '')
+  }
 
   return (
     <div className="rounded-xl border border-black/5 bg-white p-4">
@@ -68,28 +81,41 @@ export default function NuevoUsuarioForm() {
           <label className="mb-1 block text-[11px] text-by-gray-dark">
             Puesto
           </label>
-          <input
-            name="puesto"
-            placeholder="Jefe de almacén"
+          <select
+            name="puesto_id"
+            required
+            defaultValue=""
+            onChange={alCambiarPuesto}
             className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
+          >
+            <option value="" disabled>
+              Selecciona un puesto
+            </option>
+            {puestos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+          <input type="hidden" name="puesto_nombre" value={puestoNombre} />
         </div>
         <div className="col-span-2">
           <label className="mb-1 block text-[11px] text-by-gray-dark">
-            Rol
+            Rol (se llena solo según el puesto, pero puedes ajustarlo)
           </label>
           <select
             name="rol"
             required
-            defaultValue=""
+            value={rolSeleccionado}
+            onChange={(e) => setRolSeleccionado(e.target.value)}
             className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           >
             <option value="" disabled>
-              Selecciona un rol
+              Selecciona un puesto primero
             </option>
-            {ROLES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
+            {Object.entries(ROL_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
               </option>
             ))}
           </select>
