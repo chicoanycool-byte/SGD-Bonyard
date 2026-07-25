@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { subirOrganigrama, subirDescriptivo, obtenerUrlArchivoRrhh } from './actions'
+import { subirOrganigrama, subirDescriptivo, subirDescriptivosMasivo, obtenerUrlArchivoRrhh } from './actions'
 
 type Organigrama = { id: string; nombre_archivo: string; storage_path: string; actualizado_en: string } | null
 type Descriptivo = {
@@ -28,6 +28,10 @@ export default function RecursosHumanosClient({
   const [tab, setTab] = useState<'organigrama' | 'descriptivos'>('organigrama')
   const [pendiente, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const [resultadoMasivo, setResultadoMasivo] = useState<{
+    subidos: string[]
+    noEmparejados: string[]
+  } | null>(null)
 
   async function abrir(storagePath: string) {
     try {
@@ -121,10 +125,72 @@ export default function RecursosHumanosClient({
       {tab === 'descriptivos' && (
         <div className="flex flex-col gap-4">
           {esCoordinador && (
-            <form
-              action={(fd) => startTransition(() => subirDescriptivo(fd))}
-              className="flex flex-wrap items-center gap-2 rounded-xl border border-black/5 bg-white p-4"
-            >
+            <>
+              <form
+                action={(fd) =>
+                  startTransition(async () => {
+                    setResultadoMasivo(null)
+                    try {
+                      const resultado = await subirDescriptivosMasivo(fd)
+                      setResultadoMasivo(resultado)
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : 'No se pudo subir.')
+                    }
+                  })
+                }
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-black/5 bg-white p-4"
+              >
+                <div className="flex-1">
+                  <p className="mb-1 text-[12.5px] font-medium text-by-gray-dark">
+                    Carga masiva (todos los descriptivos + organigrama de una sola vez)
+                  </p>
+                  <p className="text-[11px] text-by-gray-light">
+                    Selecciona todos los PDF con sus nombres originales (ej. DRH13_DESCRIPTIVO_DE_PUESTO_JEFE_DE_ALMACEN.pdf) y el sistema los empareja solo.
+                  </p>
+                </div>
+                <input type="file" name="archivos" accept="application/pdf" multiple required className="text-[12px]" />
+                <button
+                  type="submit"
+                  disabled={pendiente}
+                  className="rounded-md bg-by-primary px-3 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
+                >
+                  {pendiente ? 'Subiendo…' : 'Subir todos'}
+                </button>
+              </form>
+
+              {resultadoMasivo && (
+                <div className="rounded-xl border border-black/5 bg-white p-4 text-[12px]">
+                  {resultadoMasivo.subidos.length > 0 && (
+                    <>
+                      <p className="mb-1 font-medium text-[#3d6b53]">
+                        Subidos correctamente ({resultadoMasivo.subidos.length}):
+                      </p>
+                      <ul className="mb-3 list-disc pl-4 text-by-gray-dark">
+                        {resultadoMasivo.subidos.map((s) => (
+                          <li key={s}>{s}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {resultadoMasivo.noEmparejados.length > 0 && (
+                    <>
+                      <p className="mb-1 font-medium text-amber-700">
+                        No se pudieron emparejar ({resultadoMasivo.noEmparejados.length}) — súbelos manualmente abajo:
+                      </p>
+                      <ul className="list-disc pl-4 text-by-gray-dark">
+                        {resultadoMasivo.noEmparejados.map((s) => (
+                          <li key={s}>{s}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <form
+                action={(fd) => startTransition(() => subirDescriptivo(fd))}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-black/5 bg-white p-4"
+              >
               <select
                 name="puesto_id"
                 required
@@ -145,7 +211,8 @@ export default function RecursosHumanosClient({
               >
                 {pendiente ? 'Subiendo…' : 'Subir / Reemplazar'}
               </button>
-            </form>
+              </form>
+            </>
           )}
 
           <div className="rounded-xl border border-black/5 bg-white">
