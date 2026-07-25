@@ -1,154 +1,150 @@
-'use server'
+'use client'
 
-import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
-import { requerirUsuario } from '@/lib/auth'
+import { useActionState, useRef, useEffect, useState } from 'react'
+import { crearUsuario, type EstadoCrearUsuario } from './actions'
 
-const ROLES = [
-  'coordinador_sgi',
-  'director',
-  'gerente',
-  'jefe',
-  'supervisor',
-] as const
-
-export type EstadoCrearUsuario = {
-  error?: string
-  passwordTemporal?: string
-  correoCreado?: string
+const ROL_LABEL: Record<string, string> = {
+  coordinador_sgi: 'Coordinador SGI',
+  director: 'Director',
+  gerente: 'Gerente',
+  jefe: 'Jefe',
+  supervisor: 'Supervisor',
+  auxiliar: 'Auxiliar',
+  montacarguista: 'Montacarguista',
 }
 
-export type EstadoEditarUsuario = { error?: string; ok?: boolean }
+type Puesto = { id: string; nombre: string; rol_sistema: string }
 
-export async function editarUsuario(
-  usuarioId: string,
-  campos: {
-    usuario: string
-    nombre: string
-    correo: string
-    puesto: string | null
-    rol: string
-  }
-): Promise<EstadoEditarUsuario> {
-  const quien = await requerirUsuario()
-  if (quien.rol !== 'coordinador_sgi') {
-    return { error: 'No autorizado.' }
-  }
+const inicial: EstadoCrearUsuario = {}
 
-  if (!campos.usuario.trim() || !campos.nombre.trim() || !campos.correo.trim()) {
-    return { error: 'Usuario, nombre y correo son obligatorios.' }
-  }
+export default function NuevoUsuarioForm({ puestos }: { puestos: Puesto[] }) {
+  const [estado, formAction, pending] = useActionState(crearUsuario, inicial)
+  const formRef = useRef<HTMLFormElement>(null)
+  const [rolSeleccionado, setRolSeleccionado] = useState('')
+  const [puestoNombre, setPuestoNombre] = useState('')
 
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('usuarios')
-    .update({
-      usuario: campos.usuario.trim(),
-      nombre: campos.nombre.trim(),
-      correo: campos.correo.trim(),
-      puesto: campos.puesto?.trim() || null,
-      rol: campos.rol,
-      actualizado_en: new Date().toISOString(),
-    })
-    .eq('id', usuarioId)
-
-  if (error) {
-    return { error: error.message.includes('duplicate') ? 'Ese nombre de usuario ya existe.' : 'No se pudo guardar. ' + error.message }
-  }
-
-  revalidatePath('/usuarios')
-  return { ok: true }
-}
-
-export async function crearUsuario(
-  _prevState: EstadoCrearUsuario,
-  formData: FormData
-): Promise<EstadoCrearUsuario> {
-  const quien = await requerirUsuario()
-  if (quien.rol !== 'coordinador_sgi') {
-    return { error: 'No autorizado.' }
-  }
-
-  const usuario = String(formData.get('usuario') ?? '').trim().toLowerCase()
-  const nombre = String(formData.get('nombre') ?? '').trim()
-  let correo = String(formData.get('correo') ?? '').trim().toLowerCase()
-  const puesto = String(formData.get('puesto') ?? '').trim()
-  const rol = String(formData.get('rol') ?? '')
-
-  if (!usuario || !nombre || !rol) {
-    return { error: 'Completa todos los campos obligatorios.' }
-  }
-
-  if (!correo) {
-    correo = `${usuario}@bonyard.mx`
-  }
-
-  if (!(ROLES as readonly string[]).includes(rol)) {
-    return { error: 'Rol inválido.' }
-  }
-
-  if (!correo.endsWith('@bonyard.mx')) {
-    return { error: 'El correo debe ser @bonyard.mx.' }
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.rpc('admin_crear_usuario', {
-    p_usuario: usuario,
-    p_nombre: nombre,
-    p_correo: correo,
-    p_puesto: puesto || null,
-    p_rol: rol,
-  })
-
-  if (error) {
-    if (error.message.includes('duplicate')) {
-      return { error: 'Ese usuario o correo ya existe.' }
+  useEffect(() => {
+    if (estado.passwordTemporal) {
+      formRef.current?.reset()
+      setRolSeleccionado('')
+      setPuestoNombre('')
     }
-    return { error: 'No se pudo crear el usuario. ' + error.message }
+  }, [estado.passwordTemporal])
+
+  function alCambiarPuesto(e: React.ChangeEvent<HTMLSelectElement>) {
+    const puesto = puestos.find((p) => p.id === e.target.value)
+    setRolSeleccionado(puesto?.rol_sistema ?? '')
+    setPuestoNombre(puesto?.nombre ?? '')
   }
 
-  revalidatePath('/usuarios')
-  return { passwordTemporal: data as string, correoCreado: correo }
-}
+  return (
+    <div className="rounded-xl border border-black/5 bg-white p-4">
+      <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
+        Dar de alta usuario
+      </p>
 
-export async function restablecerPassword(usuarioId: string): Promise<string> {
-  const quien = await requerirUsuario()
-  if (quien.rol !== 'coordinador_sgi') {
-    throw new Error('No autorizado.')
-  }
+      <form ref={formRef} action={formAction} className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-[11px] text-by-gray-dark">
+            Usuario
+          </label>
+          <input
+            name="usuario"
+            placeholder="chernandez"
+            required
+            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] text-by-gray-dark">
+            Nombre completo
+          </label>
+          <input
+            name="nombre"
+            placeholder="Nombre Apellido Apellido"
+            required
+            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] text-by-gray-dark">
+            Correo (opcional)
+          </label>
+          <input
+            name="correo"
+            type="email"
+            placeholder="nombre@bonyard.mx (si se deja vacío, se genera automático)"
+            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] text-by-gray-dark">
+            Puesto
+          </label>
+          <select
+            name="puesto_id"
+            required
+            defaultValue=""
+            onChange={alCambiarPuesto}
+            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          >
+            <option value="" disabled>
+              Selecciona un puesto
+            </option>
+            {puestos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+          <input type="hidden" name="puesto_nombre" value={puestoNombre} />
+        </div>
+        <div className="col-span-2">
+          <label className="mb-1 block text-[11px] text-by-gray-dark">
+            Rol (se llena solo según el puesto, pero puedes ajustarlo)
+          </label>
+          <select
+            name="rol"
+            required
+            value={rolSeleccionado}
+            onChange={(e) => setRolSeleccionado(e.target.value)}
+            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          >
+            <option value="" disabled>
+              Selecciona un puesto primero
+            </option>
+            {Object.entries(ROL_LABEL).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-  const supabase = await createClient()
-  const { data, error } = await supabase.rpc('admin_restablecer_password', {
-    p_usuario_id: usuarioId,
-  })
+        {estado.error && (
+          <p className="col-span-2 rounded-md bg-red-50 px-3 py-2 text-[12px] text-red-700">
+            {estado.error}
+          </p>
+        )}
 
-  if (error) {
-    throw new Error(error.message)
-  }
+        {estado.passwordTemporal && (
+          <div className="col-span-2 rounded-md bg-[#eaf5f0] px-3 py-2 text-[12px] text-[#3d6b53]">
+            Usuario creado ({estado.correoCreado}). Contraseña temporal:{' '}
+            <code className="font-medium">{estado.passwordTemporal}</code>
+            <br />
+            Compártesela por un canal seguro; se le pedirá cambiarla en su
+            primer acceso.
+          </div>
+        )}
 
-  revalidatePath('/usuarios')
-  return data as string
-}
-
-export async function cambiarEstatusUsuario(
-  usuarioId: string,
-  estatus: 'activo' | 'pausado' | 'baja'
-) {
-  const quien = await requerirUsuario()
-  if (quien.rol !== 'coordinador_sgi') {
-    throw new Error('No autorizado.')
-  }
-
-  const supabase = await createClient()
-  const { error } = await supabase.rpc('admin_cambiar_estatus_usuario', {
-    p_usuario_id: usuarioId,
-    p_estatus: estatus,
-  })
-
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  revalidatePath('/usuarios')
+        <button
+          type="submit"
+          disabled={pending}
+          className="col-span-2 h-8 w-fit rounded-md bg-by-primary px-4 text-[13px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
+        >
+          {pending ? 'Creando…' : 'Crear usuario'}
+        </button>
+      </form>
+    </div>
+  )
 }
