@@ -31,6 +31,7 @@ type Item = { href: string; label: string }
 
 const ICONOS: Record<string, LucideIcon> = {
   '/inicio': Home,
+  '/recursos-humanos': Users2,
   '/documentos': FileText,
   '/documentos-alta': FilePlus2,
   '/solicitudes': FileEdit,
