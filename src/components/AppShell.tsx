@@ -6,27 +6,89 @@ import BotonesAtrasActualizar from './BotonesAtrasActualizar'
 import MenuLateral from './MenuLateral'
 import { ROL_LABEL } from '@/lib/permisos'
 
-const NAV = [
-  { href: '/inicio', label: 'Inicio', soloCoordinador: false, siempre: true },
-  { href: '/recursos-humanos', label: 'Recursos Humanos', soloCoordinador: false },
-  { href: '/documentos', label: 'Ver documentos del SGI', soloCoordinador: false },
-  { href: '/documentos-alta', label: 'Alta o actualización de documentos', soloCoordinador: true },
-  { href: '/solicitudes', label: 'Solicitud de cambio de documentos', soloCoordinador: false },
-  { href: '/auditorias', label: 'Auditorías', soloCoordinador: false },
-  { href: '/quejas', label: 'Quejas', soloCoordinador: false },
-  { href: '/ac-ap', label: 'Acciones Correctivas y Preventivas', soloCoordinador: false },
-  { href: '/indicadores', label: 'Tablero de indicadores', soloCoordinador: false },
-  { href: '/reunion-haccp', label: 'Reunión Equipo HACCP', soloCoordinador: false },
-  { href: '/revision-direccion', label: 'Revisión por la Dirección', soloCoordinador: false },
-  { href: '/proveedores', label: 'Proveedores', soloCoordinador: true },
-  { href: '/recorridos-bpa', label: 'Recorridos BPAs', soloCoordinador: false },
-  { href: '/verificacion-sgi', label: 'Verificación del SGI', soloCoordinador: true },
-  { href: '/matriz-legal', label: 'Matriz de Requisitos Legales', soloCoordinador: false },
-  { href: '/pnc', label: 'Producto y Equipo No Conforme', soloCoordinador: false },
-  { href: '/pendientes', label: 'Ver lista de pendientes', soloCoordinador: false },
+type SubItem = { href: string; label: string; soloCoordinador?: boolean }
+type NavItem =
+  | { href: string; label: string; soloCoordinador?: boolean; siempre?: boolean; children?: undefined }
+  | { label: string; soloCoordinador?: boolean; children: SubItem[]; href?: undefined }
+
+const NAV: NavItem[] = [
+  { href: '/inicio', label: 'Inicio', siempre: true },
+  { href: '/recursos-humanos', label: 'Recursos Humanos' },
+  {
+    label: 'Documentos del Sistema de Gestión',
+    children: [
+      { href: '/documentos', label: 'Ver Procedimientos y Manuales' },
+      { href: '/solicitudes', label: 'Solicitud de cambios' },
+      { href: '/documentos-alta', label: 'Alta o actualización', soloCoordinador: true },
+    ],
+  },
+  {
+    label: 'Dirección',
+    children: [
+      { href: '/indicadores', label: 'Indicadores' },
+      { href: '/revision-direccion', label: 'Revisión por la Dirección' },
+    ],
+  },
+  {
+    label: 'Quejas',
+    children: [
+      { href: '/quejas', label: 'Ver quejas' },
+      { href: '/quejas/dashboard', label: 'Métricas' },
+    ],
+  },
+  {
+    label: 'Acciones Correctivas y Preventivas',
+    children: [
+      { href: '/ac-ap', label: 'Ver Acciones' },
+      { href: '/ac-ap/dashboard', label: 'Métricas' },
+    ],
+  },
+  {
+    label: 'Recorridos BPAs',
+    children: [
+      { href: '/recorridos-bpa', label: 'Ver Recorridos' },
+      { href: '/recorridos-bpa/dashboard', label: 'Métricas' },
+    ],
+  },
+  {
+    label: 'Verificación del SGI',
+    soloCoordinador: true,
+    children: [
+      { href: '/verificacion-sgi', label: 'Ver Verificaciones' },
+      { href: '/verificacion-sgi/dashboard', label: 'Métricas' },
+    ],
+  },
+  {
+    label: 'Producto y Equipo No Conforme',
+    children: [
+      { href: '/pnc/capturar', label: 'Capturar PNC' },
+      { href: '/pnc/registro', label: 'Ver Registros PNC' },
+    ],
+  },
+  {
+    label: 'Compras',
+    soloCoordinador: true,
+    children: [
+      { href: '/proveedores', label: 'Proveedores' },
+      { href: '/proveedores/dashboard', label: 'Métricas' },
+    ],
+  },
+  {
+    label: 'Auditorías',
+    children: [{ href: '/auditorias', label: 'Ver Auditorías' }],
+  },
+  {
+    label: 'Plan HACCP',
+    children: [{ href: '/reunion-haccp', label: 'Reunión Equipo HACCP' }],
+  },
+  {
+    label: 'EHS',
+    children: [{ href: '/matriz-legal', label: 'Matriz de Requisitos Legales' }],
+  },
+  { href: '/pendientes', label: 'Ver lista de pendientes' },
   { href: '/usuarios', label: 'Usuarios', soloCoordinador: true },
   { href: '/metricas-acceso', label: 'Métricas de acceso', soloCoordinador: true },
-  { href: '/asesor', label: 'Tu Asesor Bonyard', soloCoordinador: false, siempre: true },
+  { href: '/asesor', label: 'Tu Asesor Bonyard', siempre: true },
 ]
 
 function iniciales(nombre: string) {
@@ -63,7 +125,17 @@ export default async function AppShell({
     .maybeSingle()
   const puesto = datosUsuario?.puesto?.trim()
 
-  const itemsVisibles = NAV.filter((item) => !item.soloCoordinador || esCoordinador)
+  const itemsVisibles = NAV.map((item) => {
+    if (item.children) {
+      const children = item.children.filter((c) => !c.soloCoordinador || esCoordinador)
+      return { ...item, children }
+    }
+    return item
+  }).filter((item) => {
+    if (item.soloCoordinador && !esCoordinador) return false
+    if (item.children) return item.children.length > 0
+    return true
+  })
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
