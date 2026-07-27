@@ -82,7 +82,9 @@ const NAV: NavItem[] = [
     label: 'Compras',
     soloCoordinador: true,
     children: [
-      { href: '/proveedores', label: 'Proveedores' },
+      { href: '/proveedores', label: 'Proveedores (alta y evaluaciones)' },
+      { href: '/proveedores/evaluacion-inicial', label: 'Evaluación inicial de proveedor' },
+      { href: '/proveedores/permisos-trabajo', label: 'Permiso de trabajo' },
       { href: '/proveedores/dashboard', label: 'Métricas' },
     ],
   },
