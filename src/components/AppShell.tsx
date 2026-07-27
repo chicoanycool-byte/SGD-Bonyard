@@ -111,6 +111,7 @@ const NAV: NavItem[] = [
       { href: '/matriz-legal/indicadores', label: 'Métricas', soloCoordinador: true },
     ],
   },
+  { href: '/inocuidad-alimentaria', label: 'Inocuidad Alimentaria' },
   {
     label: 'TI',
     children: [
