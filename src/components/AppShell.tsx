@@ -112,6 +112,13 @@ const NAV: NavItem[] = [
     ],
   },
   {
+    label: 'TI',
+    children: [
+      { href: '/ti/incidentes', label: 'Incidentes de sistemas' },
+      { href: '/ti/dashboard', label: 'Disponibilidad de sistemas' },
+    ],
+  },
+  {
     label: 'Seguridad Patrimonial',
     children: [
       { href: '/seguridad-patrimonial/manual', label: 'Manual (Nave 1 / Nave 2)' },
