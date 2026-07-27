@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import PDFDocument from 'pdfkit'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
+import { dibujarEncabezadoOficial, dibujarPieOficialEnTodasLasPaginas } from '@/lib/pdf/plantillaOficial'
 
 function cumpleMeta(operador: string, metaValor: number, valor: number) {
   if (operador === 'gte') return valor >= metaValor
@@ -42,16 +43,14 @@ export async function GET() {
     return { ind, promedio, semaforo }
   })
 
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 })
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30, bufferPages: true })
   const chunks: Buffer[] = []
   doc.on('data', (chunk) => chunks.push(chunk))
   const listo = new Promise<Buffer>((resolve) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
   })
 
-  doc.fontSize(14).fillColor('#08495C').text('TABLERO DE INDICADORES — FSG-06', { align: 'center' })
-  doc.fontSize(9).fillColor('#666').text(`BONYARD Servicios · ${anio}`, { align: 'center' })
-  doc.moveDown(1)
+  dibujarEncabezadoOficial(doc, { titulo: `Tablero de Indicadores · ${anio}`, codigo: 'FSG-06', version: '01' })
 
   const columnas = [
     { titulo: '#', ancho: 25 },
@@ -116,6 +115,7 @@ export async function GET() {
     y += alturaFila
   }
 
+  dibujarPieOficialEnTodasLasPaginas(doc)
   doc.end()
   const buffer = await listo
 
