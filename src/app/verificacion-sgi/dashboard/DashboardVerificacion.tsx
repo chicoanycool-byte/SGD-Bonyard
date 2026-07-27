@@ -14,14 +14,16 @@ type Hallazgo = {
 export default function DashboardVerificacion({ hallazgos }: { hallazgos: Hallazgo[] }) {
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
+  const [soloEstatus, setSoloEstatus] = useState('')
 
   const filtrados = useMemo(() => {
     return hallazgos.filter((h) => {
       if (desde && h.verificacion_fecha < desde) return false
       if (hasta && h.verificacion_fecha > hasta) return false
+      if (soloEstatus && h.estatus !== soloEstatus) return false
       return true
     })
-  }, [hallazgos, desde, hasta])
+  }, [hallazgos, desde, hasta, soloEstatus])
 
   const noConformes = filtrados.filter((h) => h.respuesta === 'no_cumple')
   const cerrados = noConformes.filter((h) => h.estatus === 'cerrado')
@@ -60,21 +62,39 @@ export default function DashboardVerificacion({ hallazgos }: { hallazgos: Hallaz
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <button
+          onClick={() => setSoloEstatus('')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (soloEstatus === '' ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">No conformidades</p>
           <p className="text-[22px] font-medium">{noConformes.length}</p>
-        </div>
-        <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
+        </button>
+        <button
+          onClick={() => setSoloEstatus(soloEstatus === 'cerrado' ? '' : 'cerrado')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3d6b53] transition ' +
+            (soloEstatus === 'cerrado' ? 'bg-[#d3ecdf] ring-2 ring-[#3d6b53]/40' : 'bg-[#eaf5f0] hover:bg-[#dff0e7]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Cerrados en tiempo</p>
           <p className="text-[22px] font-medium">
             {cerrados.length > 0 ? `${Math.round((enTiempo / cerrados.length) * 100)}%` : '—'}
           </p>
           <p className="text-[10.5px] opacity-70">{enTiempo}/{cerrados.length} cerrados</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => setSoloEstatus(soloEstatus === 'abierto' ? '' : 'abierto')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (soloEstatus === 'abierto' ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Abiertos</p>
           <p className="text-[22px] font-medium">{noConformes.length - cerrados.length}</p>
-        </div>
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
