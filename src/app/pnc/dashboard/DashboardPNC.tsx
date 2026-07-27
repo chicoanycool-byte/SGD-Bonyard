@@ -111,26 +111,59 @@ export default function DashboardPNC({ registros }: { registros: Registro[] }) {
       </div>
 
       <div className="grid grid-cols-5 gap-3">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <button
+          onClick={() => {
+            setEstatus('')
+            setTipo('')
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (estatus === '' && tipo === '' ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Registros (filtro actual)</p>
           <p className="text-[24px] font-medium">{total}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => setEstatus(estatus === 'abierto' ? '' : 'abierto')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (estatus === 'abierto' ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Abiertos</p>
           <p className="text-[24px] font-medium">{abiertos}</p>
-        </div>
-        <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
+        </button>
+        <button
+          onClick={() => setEstatus(estatus === 'cerrado' ? '' : 'cerrado')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3d6b53] transition ' +
+            (estatus === 'cerrado' ? 'bg-[#d3ecdf] ring-2 ring-[#3d6b53]/40' : 'bg-[#eaf5f0] hover:bg-[#dff0e7]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Cerrados</p>
           <p className="text-[24px] font-medium">{cerrados}</p>
-        </div>
-        <div className="rounded-lg bg-[#f0eafa] px-4 py-3 text-[#6b4fa0]">
+        </button>
+        <button
+          onClick={() => setTipo(tipo === 'producto' ? '' : 'producto')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#6b4fa0] transition ' +
+            (tipo === 'producto' ? 'bg-[#e2d7f4] ring-2 ring-[#6b4fa0]/40' : 'bg-[#f0eafa] hover:bg-[#e6ddf6]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Producto</p>
           <p className="text-[24px] font-medium">{producto}</p>
-        </div>
-        <div className="rounded-lg bg-[#eaf1fa] px-4 py-3 text-[#3c6ba1]">
+        </button>
+        <button
+          onClick={() => setTipo(tipo === 'equipo' ? '' : 'equipo')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3c6ba1] transition ' +
+            (tipo === 'equipo' ? 'bg-[#d3e4f4] ring-2 ring-[#3c6ba1]/40' : 'bg-[#eaf1fa] hover:bg-[#deebf7]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Equipo</p>
           <p className="text-[24px] font-medium">{equipo}</p>
-        </div>
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
