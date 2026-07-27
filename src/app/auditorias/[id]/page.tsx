@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/server'
 import ChecklistHallazgos from './ChecklistHallazgos'
 import PanelControlAuditoria from './PanelControlAuditoria'
 import EditarAuditoriaForm from './EditarAuditoriaForm'
+import PlanAuditoria from './PlanAuditoria'
+import EvaluacionAuditor from './EvaluacionAuditor'
 
 const NORMA_LABEL: Record<string, string> = {
   iso_9001: 'ISO 9001:2015',
@@ -24,24 +26,23 @@ export default async function DetalleAuditoriaPage({
   const { data: auditoria } = await supabase
     .from('auditorias')
     .select(
-      'id, fecha, norma, tipo, proceso, cliente_nombre, nave, puesto_auditado, observaciones, estatus, informe_resumen, informe_conclusiones, auditor_lider:usuarios!auditorias_auditor_lider_id_fkey(id, nombre), auditor_auxiliar:usuarios!auditorias_auditor_auxiliar_id_fkey(id, nombre), auditado:usuarios!auditorias_auditado_id_fkey(nombre)'
+      'id, fecha, norma, tipo, proceso, cliente_nombre, nave, puesto_auditado, observaciones, estatus, informe_resumen, informe_conclusiones, alcance, objetivo, auditor_lider:usuarios!auditorias_auditor_lider_id_fkey(id, nombre), auditor_auxiliar:usuarios!auditorias_auditor_auxiliar_id_fkey(id, nombre), auditado:usuarios!auditorias_auditado_id_fkey(nombre)'
     )
     .eq('id', id)
     .single()
 
   if (!auditoria) notFound()
 
-  const { data: usuarios } = await supabase
-    .from('usuarios')
-    .select('id, nombre')
-    .eq('estatus', 'activo')
-    .order('nombre')
-
-  const { data: hallazgos } = await supabase
-    .from('auditoria_hallazgos')
-    .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia')
-    .eq('auditoria_id', id)
-    .order('orden')
+  const [{ data: usuarios }, { data: hallazgos }, { data: agenda }, { data: evaluaciones }] = await Promise.all([
+    supabase.from('usuarios').select('id, nombre').eq('estatus', 'activo').order('nombre'),
+    supabase
+      .from('auditoria_hallazgos')
+      .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia')
+      .eq('auditoria_id', id)
+      .order('orden'),
+    supabase.from('auditoria_agenda').select('*').eq('auditoria_id', id).order('orden'),
+    supabase.from('evaluaciones_auditor').select('*').eq('auditoria_id', id).order('creado_en', { ascending: false }),
+  ])
 
   const auditorLider = auditoria.auditor_lider as unknown as
     | { id: string; nombre: string }
@@ -140,11 +141,27 @@ export default async function DetalleAuditoriaPage({
           </div>
         </div>
 
+        <PlanAuditoria
+          auditoriaId={auditoria.id}
+          alcance={auditoria.alcance}
+          objetivo={auditoria.objetivo}
+          agenda={agenda ?? []}
+          puedeEditar={puedeEditar}
+        />
+
         <ChecklistHallazgos
           auditoriaId={auditoria.id}
           hallazgos={hallazgos ?? []}
           puedeEditar={puedeEditar}
           bloqueado={auditoria.estatus === 'cerrada' || auditoria.estatus === 'cancelada'}
+        />
+
+        <EvaluacionAuditor
+          auditoriaId={auditoria.id}
+          normaReferencia={auditoria.norma}
+          auditores={usuarios ?? []}
+          evaluaciones={evaluaciones ?? []}
+          puedeVerLista={quien.rol === 'coordinador_sgi' || quien.rol === 'director' || quien.rol === 'gerente'}
         />
 
         {auditoria.informe_resumen && (
