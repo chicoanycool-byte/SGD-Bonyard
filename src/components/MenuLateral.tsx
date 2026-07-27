@@ -31,7 +31,9 @@ type Item = { href: string; label: string; children?: undefined } | { label: str
 
 const ICONOS: Record<string, LucideIcon> = {
   '/inicio': Home,
-  '/recursos-humanos': Users2,
+  '/politica-calidad': FileText,
+  '/reglamento-higiene': FileText,
+  'Recursos Humanos': Users2,
   'Documentos del Sistema de Gestión': FileText,
   Dirección: Building2,
   Quejas: MessageSquareWarning,
