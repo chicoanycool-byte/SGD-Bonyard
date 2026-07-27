@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 type Indicador = {
   id: string
   proceso: string
@@ -34,6 +36,8 @@ export default function DashboardIndicadores({
   valores: Valor[]
   anio: number
 }) {
+  const [soloSemaforo, setSoloSemaforo] = useState('')
+
   const evaluados = indicadores.map((ind) => {
     const propios = valores.filter((v) => v.indicador_id === ind.id && v.anio === anio && v.valor !== null)
     const porMes = (m: number) => propios.find((v) => v.mes === m)?.valor ?? null
@@ -67,7 +71,8 @@ export default function DashboardIndicadores({
   const cumplimientoGlobal = conDato > 0 ? Math.round((enMeta / conDato) * 100) : null
 
   const porProceso = new Map<string, typeof evaluados>()
-  for (const e of evaluados) {
+  const evaluadosFiltrados = soloSemaforo ? evaluados.filter((e) => e.semaforo === soloSemaforo) : evaluados
+  for (const e of evaluadosFiltrados) {
     const lista = porProceso.get(e.ind.proceso) ?? []
     lista.push(e)
     porProceso.set(e.ind.proceso, lista)
@@ -96,28 +101,58 @@ export default function DashboardIndicadores({
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-5 gap-3">
-        <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
+        <button
+          onClick={() => setSoloSemaforo(soloSemaforo === 'verde' ? '' : 'verde')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3d6b53] transition ' +
+            (soloSemaforo === 'verde' ? 'bg-[#d3ecdf] ring-2 ring-[#3d6b53]/40' : 'bg-[#eaf5f0] hover:bg-[#dff0e7]')
+          }
+        >
           <p className="text-[22px] font-semibold">{enMeta}</p>
           <p className="text-[11px] opacity-80">Indicadores en meta</p>
-        </div>
-        <div className="rounded-lg bg-[#fdf3e3] px-4 py-3 text-[#9a6b1c]">
+        </button>
+        <button
+          onClick={() => setSoloSemaforo(soloSemaforo === 'amarillo' ? '' : 'amarillo')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#9a6b1c] transition ' +
+            (soloSemaforo === 'amarillo' ? 'bg-[#f9e6bf] ring-2 ring-[#9a6b1c]/40' : 'bg-[#fdf3e3] hover:bg-[#fbedd2]')
+          }
+        >
           <p className="text-[22px] font-semibold">{enAtencion}</p>
           <p className="text-[11px] opacity-80">En atención</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => setSoloSemaforo(soloSemaforo === 'rojo' ? '' : 'rojo')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (soloSemaforo === 'rojo' ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="text-[22px] font-semibold">{accionUrgente}</p>
           <p className="text-[11px] opacity-80">Requieren acción urgente</p>
-        </div>
-        <div className="rounded-lg bg-[#f1efe8] px-4 py-3 text-[#5f5e5a]">
+        </button>
+        <button
+          onClick={() => setSoloSemaforo(soloSemaforo === 'sin_dato' ? '' : 'sin_dato')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#5f5e5a] transition ' +
+            (soloSemaforo === 'sin_dato' ? 'bg-[#e2e0d6] ring-2 ring-[#5f5e5a]/40' : 'bg-[#f1efe8] hover:bg-[#e9e6db]')
+          }
+        >
           <p className="text-[22px] font-semibold">{sinDato}</p>
           <p className="text-[11px] opacity-80">Sin dato / pendiente</p>
-        </div>
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        </button>
+        <button
+          onClick={() => setSoloSemaforo('')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (soloSemaforo === '' ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="text-[22px] font-semibold">
             {cumplimientoGlobal !== null ? `${cumplimientoGlobal}%` : '—'}
           </p>
           <p className="text-[11px] opacity-80">% cumplimiento global</p>
-        </div>
+        </button>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-black/5 bg-white">
