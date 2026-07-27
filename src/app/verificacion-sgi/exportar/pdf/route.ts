@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import PDFDocument from 'pdfkit'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
+import { dibujarEncabezadoOficial, dibujarPieOficialEnTodasLasPaginas } from '@/lib/pdf/plantillaOficial'
 
 export async function GET() {
   const quien = await requerirUsuario()
@@ -20,16 +21,14 @@ export async function GET() {
 
   const hallazgos = data ?? []
 
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 })
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30, bufferPages: true })
   const chunks: Buffer[] = []
   doc.on('data', (chunk) => chunks.push(chunk))
   const listo = new Promise<Buffer>((resolve) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
   })
 
-  doc.fontSize(14).fillColor('#08495C').text('VERIFICACIÓN DEL SGI — HALLAZGOS', { align: 'center' })
-  doc.fontSize(9).fillColor('#666').text('BONYARD Servicios', { align: 'center' })
-  doc.moveDown(1)
+  dibujarEncabezadoOficial(doc, { titulo: 'Verificación del SGI — Hallazgos', version: '01' })
 
   const columnas = [
     { titulo: 'No. Verif.', ancho: 60 },
@@ -95,6 +94,7 @@ export async function GET() {
     y += alturaFila
   }
 
+  dibujarPieOficialEnTodasLasPaginas(doc)
   doc.end()
   const buffer = await listo
 
