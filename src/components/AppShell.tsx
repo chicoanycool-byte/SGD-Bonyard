@@ -111,6 +111,13 @@ const NAV: NavItem[] = [
       { href: '/matriz-legal/indicadores', label: 'Métricas', soloCoordinador: true },
     ],
   },
+  {
+    label: 'Seguridad Patrimonial',
+    children: [
+      { href: '/seguridad-patrimonial/manual', label: 'Manual (Nave 1 / Nave 2)' },
+      { href: '/seguridad-patrimonial/sellos', label: 'Control de sellos' },
+    ],
+  },
   { href: '/pendientes', label: 'Ver lista de pendientes' },
   { href: '/usuarios', label: 'Usuarios', soloCoordinador: true },
   { href: '/metricas-acceso', label: 'Métricas de acceso', soloCoordinador: true },
