@@ -31,6 +31,8 @@ export default function DashboardQuejas({ quejas }: { quejas: Queja[] }) {
   const [criticidad, setCriticidad] = useState('')
   const [tipoQueja, setTipoQueja] = useState('')
   const [responsable, setResponsable] = useState('')
+  const [estatusFiltro, setEstatusFiltro] = useState('')
+  const [soloEscaladas, setSoloEscaladas] = useState(false)
 
   const tiposQueja = useMemo(
     () => [...new Set(quejas.map((q) => q.tipo_queja))].sort(),
@@ -50,9 +52,11 @@ export default function DashboardQuejas({ quejas }: { quejas: Queja[] }) {
       if (criticidad && q.criticidad !== criticidad) return false
       if (tipoQueja && q.tipo_queja !== tipoQueja) return false
       if (responsable && q.responsable_nombre !== responsable) return false
+      if (estatusFiltro && q.estatus !== estatusFiltro) return false
+      if (soloEscaladas && !q.escalada_ac) return false
       return true
     })
-  }, [quejas, cliente, desde, hasta, servicio, criticidad, tipoQueja, responsable])
+  }, [quejas, cliente, desde, hasta, servicio, criticidad, tipoQueja, responsable, estatusFiltro, soloEscaladas])
 
   const total = filtradas.length
   const cerradas = filtradas.filter((q) => q.estatus === 'cerrada')
@@ -144,6 +148,8 @@ export default function DashboardQuejas({ quejas }: { quejas: Queja[] }) {
                 setCriticidad('')
                 setTipoQueja('')
                 setResponsable('')
+                setEstatusFiltro('')
+                setSoloEscaladas(false)
               }}
               className="h-8 rounded-md border border-black/10 px-3 text-[12.5px] text-by-gray-dark hover:bg-black/5"
             >
@@ -154,10 +160,16 @@ export default function DashboardQuejas({ quejas }: { quejas: Queja[] }) {
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <button
+          onClick={() => setEstatusFiltro('')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (estatusFiltro === '' ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Quejas (filtro actual)</p>
           <p className="text-[24px] font-medium">{total}</p>
-        </div>
+        </button>
         <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
           <p className="mb-1 text-[11px] opacity-80">Cerradas en tiempo (PSG-03)</p>
           <p className="text-[24px] font-medium">
@@ -167,16 +179,28 @@ export default function DashboardQuejas({ quejas }: { quejas: Queja[] }) {
             {cerradasEnTiempo}/{cerradas.length} cerradas
           </p>
         </div>
-        <div className="rounded-lg bg-[#f0eafa] px-4 py-3 text-[#6b4fa0]">
+        <button
+          onClick={() => setSoloEscaladas(!soloEscaladas)}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#6b4fa0] transition ' +
+            (soloEscaladas ? 'bg-[#e2d7f4] ring-2 ring-[#6b4fa0]/40' : 'bg-[#f0eafa] hover:bg-[#e6ddf6]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Escaladas a AC</p>
           <p className="text-[24px] font-medium">{escaladas}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => setEstatusFiltro(estatusFiltro === 'abierta' ? '' : 'abierta')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (estatusFiltro === 'abierta' ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Abiertas</p>
           <p className="text-[24px] font-medium">
             {filtradas.filter((q) => q.estatus !== 'cerrada' && q.estatus !== 'no_procede').length}
           </p>
-        </div>
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
