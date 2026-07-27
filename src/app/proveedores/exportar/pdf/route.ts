@@ -3,6 +3,7 @@ import PDFDocument from 'pdfkit'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { CATEGORIA_LABEL } from '@/lib/criteriosProveedores'
+import { dibujarEncabezadoOficial, dibujarPieOficialEnTodasLasPaginas } from '@/lib/pdf/plantillaOficial'
 
 export async function GET() {
   await requerirUsuario()
@@ -17,16 +18,14 @@ export async function GET() {
 
   const evaluaciones = data ?? []
 
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 })
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30, bufferPages: true })
   const chunks: Buffer[] = []
   doc.on('data', (chunk) => chunks.push(chunk))
   const listo = new Promise<Buffer>((resolve) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
   })
 
-  doc.fontSize(14).fillColor('#08495C').text('EVALUACIÓN CONTINUA DE PROVEEDORES CRÍTICOS — FCO-05', { align: 'center' })
-  doc.fontSize(9).fillColor('#666').text('BONYARD Servicios', { align: 'center' })
-  doc.moveDown(1)
+  dibujarEncabezadoOficial(doc, { titulo: 'Evaluación Continua de Proveedores Críticos', codigo: 'FCO-05', version: '01' })
 
   const columnas = [
     { titulo: 'Proveedor', ancho: 180 },
@@ -90,6 +89,7 @@ export async function GET() {
     y += alturaFila
   }
 
+  dibujarPieOficialEnTodasLasPaginas(doc)
   doc.end()
   const buffer = await listo
 
