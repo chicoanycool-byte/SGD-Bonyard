@@ -302,3 +302,94 @@ export async function cerrarAuditoria(auditoriaId: string) {
   revalidatePath(`/auditorias/${auditoriaId}`)
   revalidatePath('/auditorias')
 }
+
+// ---------- Plan de auditoría (FSG-56) ----------
+
+export async function actualizarPlanAuditoria(auditoriaId: string, formData: FormData) {
+  const quien = await requerirUsuario()
+  if (quien.rol !== 'coordinador_sgi') throw new Error('No autorizado.')
+  const supabase = await createClient()
+
+  const alcance = String(formData.get('alcance') ?? '').trim()
+  const objetivo = String(formData.get('objetivo') ?? '').trim()
+
+  await supabase
+    .from('auditorias')
+    .update({ alcance: alcance || null, objetivo: objetivo || null, actualizado_en: new Date().toISOString() })
+    .eq('id', auditoriaId)
+
+  revalidatePath(`/auditorias/${auditoriaId}`)
+}
+
+export async function crearAgendaItem(formData: FormData) {
+  const quien = await requerirUsuario()
+  if (quien.rol !== 'coordinador_sgi') throw new Error('No autorizado.')
+  const supabase = await createClient()
+
+  const auditoriaId = String(formData.get('auditoria_id') ?? '')
+  if (!auditoriaId) throw new Error('Falta la auditoría.')
+
+  const { count } = await supabase
+    .from('auditoria_agenda')
+    .select('id', { count: 'exact', head: true })
+    .eq('auditoria_id', auditoriaId)
+
+  await supabase.from('auditoria_agenda').insert({
+    auditoria_id: auditoriaId,
+    orden: (count ?? 0) + 1,
+    fecha: String(formData.get('fecha') ?? '').trim() || null,
+    horario: String(formData.get('horario') ?? '').trim() || null,
+    area_proceso: String(formData.get('area_proceso') ?? '').trim() || null,
+    responsable_auditado: String(formData.get('responsable_auditado') ?? '').trim() || null,
+    requisitos_auditar: String(formData.get('requisitos_auditar') ?? '').trim() || null,
+    lugar: String(formData.get('lugar') ?? '').trim() || null,
+    auditor: String(formData.get('auditor') ?? '').trim() || null,
+  })
+  revalidatePath(`/auditorias/${auditoriaId}`)
+}
+
+export async function eliminarAgendaItem(id: string, auditoriaId: string) {
+  const quien = await requerirUsuario()
+  if (quien.rol !== 'coordinador_sgi') throw new Error('No autorizado.')
+  const supabase = await createClient()
+  await supabase.from('auditoria_agenda').delete().eq('id', id)
+  revalidatePath(`/auditorias/${auditoriaId}`)
+}
+
+// ---------- Evaluación de auditores (FSG-60) ----------
+
+export async function crearEvaluacionAuditor(formData: FormData) {
+  const quien = await requerirUsuario()
+  const supabase = await createClient()
+
+  const auditoriaId = String(formData.get('auditoria_id') ?? '')
+  const auditorEvaluadoId = String(formData.get('auditor_evaluado_id') ?? '') || null
+  const auditorEvaluadoNombre = String(formData.get('auditor_evaluado_nombre') ?? '').trim()
+  const normaReferencia = String(formData.get('norma_referencia') ?? '').trim()
+
+  if (!auditoriaId || !auditorEvaluadoNombre) throw new Error('Faltan datos.')
+
+  const campos = [
+    'eval_notificacion_plan', 'eval_claridad_notificacion', 'eval_coherencia_metodologia',
+    'eval_enfoque_orientacion', 'eval_horario', 'eval_cumplimiento_objetivo', 'eval_calificacion_general',
+    'eval_puntualidad', 'eval_claridad_preguntas', 'eval_orden_coherencia', 'eval_conocimiento_proceso',
+    'eval_capacidad_analisis', 'eval_eficiencia_tiempo', 'eval_claridad_hallazgos', 'eval_ecuanimidad_respeto',
+  ]
+  const valores: Record<string, number | null> = {}
+  for (const campo of campos) {
+    const v = String(formData.get(campo) ?? '')
+    valores[campo] = v ? Number(v) : null
+  }
+
+  await supabase.from('evaluaciones_auditor').insert({
+    auditoria_id: auditoriaId,
+    auditor_evaluado_id: auditorEvaluadoId,
+    auditor_evaluado_nombre: auditorEvaluadoNombre,
+    evaluador_id: quien.id,
+    norma_referencia: normaReferencia || null,
+    ...valores,
+    observaciones: String(formData.get('observaciones') ?? '').trim() || null,
+    acciones_derivadas: String(formData.get('acciones_derivadas') ?? '').trim() || null,
+  })
+  revalidatePath(`/auditorias/${auditoriaId}`)
+}
