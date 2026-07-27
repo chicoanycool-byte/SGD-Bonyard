@@ -30,6 +30,7 @@ export default function DashboardAcAp({ acciones }: { acciones: Accion[] }) {
   const [tipo, setTipo] = useState('')
   const [responsable, setResponsable] = useState('')
   const [estatus, setEstatus] = useState('')
+  const [soloAbiertas, setSoloAbiertas] = useState(false)
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
 
@@ -43,11 +44,12 @@ export default function DashboardAcAp({ acciones }: { acciones: Accion[] }) {
       if (tipo && a.tipo_accion !== tipo) return false
       if (responsable && a.responsable_nombre !== responsable) return false
       if (estatus && a.estatus !== estatus) return false
+      if (soloAbiertas && (a.estatus === 'cerrada' || a.estatus === 'rechazada')) return false
       if (desde && a.creado_en < desde) return false
       if (hasta && a.creado_en > hasta + 'T23:59:59') return false
       return true
     })
-  }, [acciones, tipo, responsable, estatus, desde, hasta])
+  }, [acciones, tipo, responsable, estatus, soloAbiertas, desde, hasta])
 
   const abiertas = filtradas.filter((a) => a.estatus !== 'cerrada' && a.estatus !== 'rechazada').length
   const cerradas = filtradas.filter((a) => a.estatus === 'cerrada')
@@ -140,6 +142,7 @@ export default function DashboardAcAp({ acciones }: { acciones: Accion[] }) {
             setTipo('')
             setResponsable('')
             setEstatus('')
+            setSoloAbiertas(false)
             setDesde('')
             setHasta('')
           }}
@@ -150,21 +153,48 @@ export default function DashboardAcAp({ acciones }: { acciones: Accion[] }) {
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <button
+          onClick={() => {
+            setEstatus('')
+            setSoloAbiertas(false)
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (estatus === '' && !soloAbiertas ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Total (filtro actual)</p>
           <p className="text-[24px] font-medium">{filtradas.length}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => {
+            setEstatus('')
+            setSoloAbiertas(!soloAbiertas)
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (soloAbiertas ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Abiertas</p>
           <p className="text-[24px] font-medium">{abiertas}</p>
-        </div>
-        <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
+        </button>
+        <button
+          onClick={() => {
+            setSoloAbiertas(false)
+            setEstatus(estatus === 'cerrada' ? '' : 'cerrada')
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3d6b53] transition ' +
+            (estatus === 'cerrada' ? 'bg-[#d3ecdf] ring-2 ring-[#3d6b53]/40' : 'bg-[#eaf5f0] hover:bg-[#dff0e7]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Cerradas en tiempo</p>
           <p className="text-[24px] font-medium">
             {porcentajeEnTiempo !== null ? `${porcentajeEnTiempo}%` : '—'}
           </p>
           <p className="text-[10.5px] opacity-70">{cerradasEnTiempo}/{cerradas.length} cerradas</p>
-        </div>
+        </button>
         <div className="rounded-lg bg-[#e6f0fa] px-4 py-3 text-[#2d5f8a]">
           <p className="mb-1 text-[11px] opacity-80">Días prom. de cierre</p>
           <p className="text-[24px] font-medium">{diasPromedioCierre ?? '—'}</p>
