@@ -6,16 +6,20 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Home,
-  FileText,
+  ShieldCheck,
+  HeartPulse,
+  Users2,
+  BookOpen,
   Building2,
   MessageSquareWarning,
   Wrench,
   ClipboardCheck,
   ClipboardList,
-  ScaleIcon,
+  CheckSquare,
   PackageX,
-  Truck,
-  Users2,
+  ShoppingCart,
+  ShieldAlert,
+  Scale,
   ListChecks,
   UserCog,
   Activity,
@@ -27,24 +31,26 @@ import {
 import { cerrarSesion } from '@/lib/sesion/actions'
 
 type SubItem = { href: string; label: string }
-type Item = { href: string; label: string; children?: undefined } | { label: string; href?: undefined; children: SubItem[] }
+type Item =
+  | { href: string; label: string; destacado?: boolean; children?: undefined }
+  | { label: string; href?: undefined; destacado?: undefined; children: SubItem[] }
 
 const ICONOS: Record<string, LucideIcon> = {
   '/inicio': Home,
-  '/politica-calidad': FileText,
-  '/reglamento-higiene': FileText,
+  '/politica-calidad': ShieldCheck,
+  '/reglamento-higiene': HeartPulse,
   'Recursos Humanos': Users2,
-  'Documentos del Sistema de Gestión': FileText,
+  'Documentos del Sistema de Gestión': BookOpen,
   Dirección: Building2,
   Quejas: MessageSquareWarning,
   'Acciones Correctivas y Preventivas': Wrench,
   'Recorridos BPAs': ClipboardList,
-  'Verificación del SGI': ScaleIcon,
+  'Verificación del SGI': CheckSquare,
   'Producto y Equipo No Conforme': PackageX,
-  Compras: Truck,
+  Compras: ShoppingCart,
   Auditorías: ClipboardCheck,
-  'Plan HACCP': Users2,
-  EHS: ScaleIcon,
+  'Plan HACCP': ShieldAlert,
+  EHS: Scale,
   '/pendientes': ListChecks,
   '/usuarios': UserCog,
   '/metricas-acceso': Activity,
@@ -87,25 +93,34 @@ export default function MenuLateral({ items, activo }: { items: Item[]; activo: 
           {items.map((item) => {
             if (!item.children) {
               const activa = item.href === activo
-              const Icono = ICONOS[item.href] ?? FileText
+              const Icono = ICONOS[item.href] ?? BookOpen
+              const destacado = item.destacado
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setAbierto(false)}
                   className={
-                    'mx-2 mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] leading-tight transition-colors ' +
-                    (activa ? 'bg-white/10 font-medium text-white' : 'text-white/65 hover:bg-white/5 hover:text-white')
+                    'mx-2 mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2.5 leading-tight transition-colors ' +
+                    (destacado ? 'text-[14.5px] font-semibold ' : 'text-[13px] ') +
+                    (activa
+                      ? destacado
+                        ? 'bg-by-accent/20 text-by-accent'
+                        : 'bg-white/10 font-medium text-white'
+                      : destacado
+                        ? 'text-by-accent/90 hover:bg-white/5 hover:text-by-accent'
+                        : 'text-white/65 hover:bg-white/5 hover:text-white')
                   }
                 >
-                  <Icono size={16} strokeWidth={1.8} className="shrink-0" />
+                  <Icono size={destacado ? 19 : 16} strokeWidth={1.8} className="shrink-0" />
                   <span className="min-w-0 flex-1 uppercase tracking-wide">{item.label}</span>
                   {activa && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-by-accent" />}
                 </Link>
               )
             }
 
-            const IconoGrupo = ICONOS[item.label] ?? FileText
+            const IconoGrupo = ICONOS[item.label] ?? BookOpen
             const estaExpandido = expandido === item.label
             const contieneActivo = item.children.some((c) => c.href === activo)
 
