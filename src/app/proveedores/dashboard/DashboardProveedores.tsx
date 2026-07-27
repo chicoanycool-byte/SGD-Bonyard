@@ -38,17 +38,23 @@ export default function DashboardProveedores({ ultimasPorProveedor }: { ultimasP
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <a
+          href="#resumen-categoria"
+          className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary transition hover:bg-[#e9ecec]"
+        >
           <p className="mb-1 text-[11px] opacity-80">Proveedores en seguimiento</p>
           <p className="text-[24px] font-medium">{ultimasPorProveedor.length}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </a>
+        <a
+          href="#plan-mejora"
+          className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33] transition hover:bg-[#fbe1de]"
+        >
           <p className="mb-1 text-[11px] opacity-80">En plan de mejora (Tipo B)</p>
           <p className="text-[24px] font-medium">{enPlanMejora.length}</p>
-        </div>
+        </a>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
+      <div id="resumen-categoria" className="overflow-hidden rounded-xl border border-black/5 bg-white scroll-mt-4">
         <div className="border-b border-black/5 px-4 py-2">
           <p className="text-[13px] font-medium text-by-gray-dark">Resumen por categoría</p>
         </div>
@@ -86,7 +92,7 @@ export default function DashboardProveedores({ ultimasPorProveedor }: { ultimasP
         </table>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
+      <div id="plan-mejora" className="overflow-hidden rounded-xl border border-black/5 bg-white scroll-mt-4">
         <div className="border-b border-black/5 px-4 py-2">
           <p className="text-[13px] font-medium text-by-gray-dark">Proveedores con plan de mejora</p>
         </div>
