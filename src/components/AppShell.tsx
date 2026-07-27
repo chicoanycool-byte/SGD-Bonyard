@@ -111,6 +111,13 @@ const NAV: NavItem[] = [
       { href: '/matriz-legal/indicadores', label: 'Métricas', soloCoordinador: true },
     ],
   },
+  {
+    label: 'Mantenimiento',
+    children: [
+      { href: '/mantenimiento/programa', label: 'Programa de Mantenimiento' },
+      { href: '/mantenimiento/ordenes', label: 'Órdenes de trabajo' },
+    ],
+  },
   { href: '/inocuidad-alimentaria', label: 'Inocuidad Alimentaria' },
   {
     label: 'TI',
