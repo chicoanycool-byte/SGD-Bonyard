@@ -72,6 +72,7 @@ const NAV: NavItem[] = [
     children: [
       { href: '/pnc/capturar', label: 'Capturar PNC' },
       { href: '/pnc/registro', label: 'Ver Registros PNC' },
+      { href: '/pnc/dashboard', label: 'Métricas' },
     ],
   },
   {
