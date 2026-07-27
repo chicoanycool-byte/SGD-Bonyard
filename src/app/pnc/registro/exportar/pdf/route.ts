@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import PDFDocument from 'pdfkit'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
+import { dibujarEncabezadoOficial, dibujarPieOficialEnTodasLasPaginas } from '@/lib/pdf/plantillaOficial'
 
 export async function GET() {
   await requerirUsuario()
@@ -10,16 +11,14 @@ export async function GET() {
   const { data } = await supabase.from('pnc_registros').select('*').order('creado_en', { ascending: true })
   const registros = data ?? []
 
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30 })
+  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 30, bufferPages: true })
   const chunks: Buffer[] = []
   doc.on('data', (chunk) => chunks.push(chunk))
   const listo = new Promise<Buffer>((resolve) => {
     doc.on('end', () => resolve(Buffer.concat(chunks)))
   })
 
-  doc.fontSize(14).fillColor('#08495C').text('CONTROL DE PRODUCTO NO CONFORME — FSG-11', { align: 'center' })
-  doc.fontSize(9).fillColor('#666').text('BONYARD Servicios', { align: 'center' })
-  doc.moveDown(1)
+  dibujarEncabezadoOficial(doc, { titulo: 'Control de Producto y Equipo No Conforme', codigo: 'FSG-11', version: '01' })
 
   const columnas = [
     { titulo: 'Folio', ancho: 55 },
@@ -86,6 +85,7 @@ export async function GET() {
     y += alturaFila
   }
 
+  dibujarPieOficialEnTodasLasPaginas(doc)
   doc.end()
   const buffer = await listo
 
