@@ -93,7 +93,11 @@ const NAV: NavItem[] = [
   },
   {
     label: 'EHS',
-    children: [{ href: '/matriz-legal', label: 'Matriz de Requisitos Legales' }],
+    children: [
+      { href: '/matriz-legal', label: 'Matriz de Requisitos Legales' },
+      { href: '/matriz-legal/plan-accion', label: 'Plan de acción' },
+      { href: '/matriz-legal/indicadores', label: 'Métricas', soloCoordinador: true },
+    ],
   },
   { href: '/pendientes', label: 'Ver lista de pendientes' },
   { href: '/usuarios', label: 'Usuarios', soloCoordinador: true },
