@@ -13,7 +13,16 @@ type NavItem =
 
 const NAV: NavItem[] = [
   { href: '/inicio', label: 'Inicio', siempre: true },
-  { href: '/recursos-humanos', label: 'Recursos Humanos' },
+  { href: '/politica-calidad', label: 'Política de Calidad e Inocuidad' },
+  { href: '/reglamento-higiene', label: 'Reglamento de Higiene y Bienestar del Personal' },
+  {
+    label: 'Recursos Humanos',
+    children: [
+      { href: '/recursos-humanos/descriptivo', label: 'Ver descriptivo' },
+      { href: '/recursos-humanos/organigrama', label: 'Organigrama' },
+      { href: '/recursos-humanos/cargar', label: 'Cargar documentos', soloCoordinador: true },
+    ],
+  },
   {
     label: 'Documentos del Sistema de Gestión',
     children: [
