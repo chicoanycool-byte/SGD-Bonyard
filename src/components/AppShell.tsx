@@ -94,7 +94,13 @@ const NAV: NavItem[] = [
   },
   {
     label: 'Plan HACCP',
-    children: [{ href: '/reunion-haccp', label: 'Reunión Equipo HACCP' }],
+    children: [
+      { href: '/reunion-haccp', label: 'Reunión Equipo HACCP' },
+      { href: '/plan-haccp/equipo', label: 'Equipo HACCP' },
+      { href: '/plan-haccp/procesos', label: 'Análisis de Procesos' },
+      { href: '/plan-haccp/productos', label: 'Análisis de productos' },
+      { href: '/plan-haccp/plan', label: 'Plan HACCP' },
+    ],
   },
   {
     label: 'EHS',
