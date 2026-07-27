@@ -34,8 +34,11 @@ const NAV: NavItem[] = [
   {
     label: 'Dirección',
     children: [
+      { href: '/direccion/contexto', label: 'Contexto de la organización' },
+      { href: '/direccion/objetivos', label: 'Objetivos' },
       { href: '/indicadores', label: 'Indicadores' },
       { href: '/revision-direccion', label: 'Revisión por la Dirección' },
+      { href: '/direccion/riesgos', label: 'Riesgos y oportunidades' },
     ],
   },
   {
