@@ -8,13 +8,13 @@ import { ROL_LABEL } from '@/lib/permisos'
 
 type SubItem = { href: string; label: string; soloCoordinador?: boolean }
 type NavItem =
-  | { href: string; label: string; soloCoordinador?: boolean; siempre?: boolean; children?: undefined }
+  | { href: string; label: string; soloCoordinador?: boolean; siempre?: boolean; destacado?: boolean; children?: undefined }
   | { label: string; soloCoordinador?: boolean; children: SubItem[]; href?: undefined }
 
 const NAV: NavItem[] = [
   { href: '/inicio', label: 'Inicio', siempre: true },
-  { href: '/politica-calidad', label: 'Política de Calidad e Inocuidad' },
-  { href: '/reglamento-higiene', label: 'Reglamento de Higiene y Bienestar del Personal' },
+  { href: '/politica-calidad', label: 'Política de Calidad e Inocuidad', destacado: true },
+  { href: '/reglamento-higiene', label: 'Reglamento de Higiene y Bienestar del Personal', destacado: true },
   {
     label: 'Recursos Humanos',
     children: [
