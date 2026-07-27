@@ -100,6 +100,7 @@ const NAV: NavItem[] = [
       { href: '/plan-haccp/procesos', label: 'Análisis de Procesos' },
       { href: '/plan-haccp/productos', label: 'Análisis de productos' },
       { href: '/plan-haccp/plan', label: 'Plan HACCP' },
+      { href: '/plan-haccp/diagramas', label: 'Diagramas de flujo' },
     ],
   },
   {
