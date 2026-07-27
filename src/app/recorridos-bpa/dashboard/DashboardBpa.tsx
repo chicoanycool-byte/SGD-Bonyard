@@ -18,6 +18,8 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
   const [hasta, setHasta] = useState('')
   const [nave, setNave] = useState('')
   const [area, setArea] = useState('')
+  const [nivelRiesgo, setNivelRiesgo] = useState('')
+  const [soloCerrados, setSoloCerrados] = useState(false)
 
   const areas = useMemo(
     () => [...new Set(hallazgos.map((h) => h.area).filter(Boolean) as string[])].sort(),
@@ -34,9 +36,11 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
       if (hasta && h.recorrido_fecha > hasta) return false
       if (nave && h.nave !== nave) return false
       if (area && h.area !== area) return false
+      if (nivelRiesgo && h.nivel_riesgo !== nivelRiesgo) return false
+      if (soloCerrados && h.estatus !== 'cerrado') return false
       return true
     })
-  }, [hallazgos, desde, hasta, nave, area])
+  }, [hallazgos, desde, hasta, nave, area, nivelRiesgo, soloCerrados])
 
   const noConformes = filtrados.filter((h) => h.respuesta === 'no_cumple')
   const criticos = noConformes.filter((h) => h.nivel_riesgo === 'Crítico').length
@@ -96,29 +100,65 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
       </div>
 
       <div className="grid grid-cols-5 gap-3">
-        <div className="rounded-lg bg-[#f4f6f6] px-4 py-3 text-by-primary">
+        <button
+          onClick={() => {
+            setNivelRiesgo('')
+            setSoloCerrados(false)
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-by-primary transition ' +
+            (nivelRiesgo === '' && !soloCerrados ? 'bg-[#e4e9e8] ring-2 ring-by-primary/40' : 'bg-[#f4f6f6] hover:bg-[#e9ecec]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">No conformes</p>
           <p className="text-[22px] font-medium">{noConformes.length}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdecea] px-4 py-3 text-[#a13c33]">
+        </button>
+        <button
+          onClick={() => setNivelRiesgo(nivelRiesgo === 'Crítico' ? '' : 'Crítico')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#a13c33] transition ' +
+            (nivelRiesgo === 'Crítico' ? 'bg-[#f9d9d5] ring-2 ring-[#a13c33]/40' : 'bg-[#fdecea] hover:bg-[#fbe1de]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Críticos</p>
           <p className="text-[22px] font-medium">{criticos}</p>
-        </div>
-        <div className="rounded-lg bg-[#fdf3e3] px-4 py-3 text-[#9a6b1c]">
+        </button>
+        <button
+          onClick={() => setNivelRiesgo(nivelRiesgo === 'Mayor' ? '' : 'Mayor')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#9a6b1c] transition ' +
+            (nivelRiesgo === 'Mayor' ? 'bg-[#f9e6bf] ring-2 ring-[#9a6b1c]/40' : 'bg-[#fdf3e3] hover:bg-[#fbedd2]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Mayores</p>
           <p className="text-[22px] font-medium">{mayores}</p>
-        </div>
-        <div className="rounded-lg bg-[#f1efe8] px-4 py-3 text-[#5f5e5a]">
+        </button>
+        <button
+          onClick={() => setNivelRiesgo(nivelRiesgo === 'Menor' ? '' : 'Menor')}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#5f5e5a] transition ' +
+            (nivelRiesgo === 'Menor' ? 'bg-[#e2e0d6] ring-2 ring-[#5f5e5a]/40' : 'bg-[#f1efe8] hover:bg-[#e9e6db]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Menores</p>
           <p className="text-[22px] font-medium">{menores}</p>
-        </div>
-        <div className="rounded-lg bg-[#eaf5f0] px-4 py-3 text-[#3d6b53]">
+        </button>
+        <button
+          onClick={() => {
+            setNivelRiesgo('')
+            setSoloCerrados(!soloCerrados)
+          }}
+          className={
+            'rounded-lg px-4 py-3 text-left text-[#3d6b53] transition ' +
+            (soloCerrados ? 'bg-[#d3ecdf] ring-2 ring-[#3d6b53]/40' : 'bg-[#eaf5f0] hover:bg-[#dff0e7]')
+          }
+        >
           <p className="mb-1 text-[11px] opacity-80">Cerrados en tiempo</p>
           <p className="text-[22px] font-medium">
             {cerrados > 0 ? `${Math.round((enTiempo / cerrados) * 100)}%` : '—'}
           </p>
           <p className="text-[10.5px] opacity-70">{enTiempo}/{cerrados} cerrados</p>
-        </div>
+        </button>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-black/5 bg-white">
