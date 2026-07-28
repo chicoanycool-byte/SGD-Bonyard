@@ -6,10 +6,10 @@ import BotonesAtrasActualizar from './BotonesAtrasActualizar'
 import MenuLateral from './MenuLateral'
 import { ROL_LABEL } from '@/lib/permisos'
 
-type SubItem = { href: string; label: string; soloCoordinador?: boolean }
+type SubItem = { href: string; label: string; soloCoordinador?: boolean; soloPuestos?: string[] }
 type NavItem =
-  | { href: string; label: string; soloCoordinador?: boolean; siempre?: boolean; destacado?: boolean; children?: undefined }
-  | { label: string; soloCoordinador?: boolean; children: SubItem[]; href?: undefined }
+  | { href: string; label: string; soloCoordinador?: boolean; soloPuestos?: string[]; siempre?: boolean; destacado?: boolean; children?: undefined }
+  | { label: string; soloCoordinador?: boolean; soloPuestos?: string[]; children: SubItem[]; href?: undefined }
 
 const NAV: NavItem[] = [
   { href: '/inicio', label: 'Inicio', siempre: true },
@@ -113,6 +113,7 @@ const NAV: NavItem[] = [
   },
   {
     label: 'Mantenimiento',
+    soloPuestos: ['Gerente de operaciones', 'Coordinador del SGI', 'Auxiliar del SGI', 'Jefe de Mantenimiento'],
     children: [
       { href: '/mantenimiento/programa', label: 'Programa de Mantenimiento' },
       { href: '/mantenimiento/limpieza', label: 'Checklist de Limpieza' },
@@ -176,12 +177,15 @@ export default async function AppShell({
 
   const itemsVisibles = NAV.map((item) => {
     if (item.children) {
-      const children = item.children.filter((c) => !c.soloCoordinador || esCoordinador)
+      const children = item.children.filter(
+        (c) => (!c.soloCoordinador || esCoordinador) && (!c.soloPuestos || c.soloPuestos.includes(puesto ?? ''))
+      )
       return { ...item, children }
     }
     return item
   }).filter((item) => {
     if (item.soloCoordinador && !esCoordinador) return false
+    if (item.soloPuestos && !item.soloPuestos.includes(puesto ?? '')) return false
     if (item.children) return item.children.length > 0
     return true
   })
