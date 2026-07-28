@@ -115,7 +115,8 @@ const NAV: NavItem[] = [
     label: 'Mantenimiento',
     children: [
       { href: '/mantenimiento/programa', label: 'Programa de Mantenimiento' },
-      { href: '/mantenimiento/ordenes', label: 'Órdenes de trabajo' },
+      { href: '/mantenimiento/limpieza', label: 'Checklist de Limpieza' },
+      { href: '/mantenimiento/metricas', label: 'Métricas' },
     ],
   },
   { href: '/inocuidad-alimentaria', label: 'Inocuidad Alimentaria' },
