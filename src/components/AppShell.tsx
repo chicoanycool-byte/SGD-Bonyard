@@ -135,7 +135,11 @@ const NAV: NavItem[] = [
     label: 'Seguridad Patrimonial',
     children: [
       { href: '/seguridad-patrimonial/manual', label: 'Manual (Nave 1 / Nave 2)' },
-      { href: '/seguridad-patrimonial/sellos', label: 'Control de sellos' },
+      {
+        href: '/seguridad-patrimonial/sellos',
+        label: 'Control de sellos',
+        soloPuestos: ['Coordinador del SGI', 'Gerente de operaciones', 'Jefe de Mantenimiento'],
+      },
     ],
   },
   { href: '/pendientes', label: 'Ver lista de pendientes' },
