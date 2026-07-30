@@ -67,6 +67,7 @@ const NAV: NavItem[] = [
     soloCoordinador: true,
     children: [
       { href: '/verificacion-sgi', label: 'Ver Verificaciones' },
+      { href: '/verificacion-sgi/programa', label: 'Programa de verificación' },
       { href: '/verificacion-sgi/dashboard', label: 'Métricas' },
     ],
   },
