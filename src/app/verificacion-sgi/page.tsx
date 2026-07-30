@@ -17,9 +17,42 @@ export default async function VerificacionSgiPage() {
     )
     .order('fecha', { ascending: false })
 
+  const hoy = new Date()
+  const anioActual = hoy.getFullYear()
+  const mesActual = hoy.getMonth() + 1
+
+  const { data: catalogoProg } = await supabase.from('verificacion_programa_catalogo').select('id, lista_verificacion, puesto_responsable_atiende').eq('activo', true)
+  const idsProg = (catalogoProg ?? []).map((c) => c.id)
+  const { data: mensualProg } = idsProg.length
+    ? await supabase
+        .from('verificacion_programa_mensual')
+        .select('item_id, programado, realizado')
+        .in('item_id', idsProg)
+        .eq('anio', anioActual)
+        .eq('mes', mesActual)
+    : { data: [] }
+
+  const pendientesMes = (mensualProg ?? [])
+    .filter((m) => m.programado && !m.realizado)
+    .map((m) => (catalogoProg ?? []).find((c) => c.id === m.item_id))
+    .filter((c): c is NonNullable<typeof c> => !!c)
+
   return (
     <AppShell nombre={quien.nombre} rol={quien.rol} usuarioId={quien.id} activo="/verificacion-sgi">
       <div className="flex flex-col gap-4">
+        {pendientesMes.length > 0 && (
+          <div className="rounded-xl border border-[#f0c94a] bg-[#fdf3e3] p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[12.5px] font-medium text-[#9a6b1c]">
+                ⚠ {pendientesMes.length} verificación{pendientesMes.length > 1 ? 'es' : ''} pendiente{pendientesMes.length > 1 ? 's' : ''} este mes según el Programa de Verificación
+              </p>
+              <Link href="/verificacion-sgi/programa" className="text-[12px] text-by-accent hover:underline">
+                Ver programa →
+              </Link>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <p className="text-[14px] font-medium text-by-gray-dark">Verificación del SGI</p>
           <div className="flex gap-2">
