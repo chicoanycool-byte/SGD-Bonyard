@@ -44,6 +44,14 @@ export default async function AuditoriasPage() {
       activo="/auditorias"
     >
       <div className="flex flex-col gap-4">
+        <div className="flex justify-end gap-2">
+          <a href="/auditorias/exportar/excel" className="h-8 rounded-md border border-by-primary px-3 text-[12px] font-medium leading-8 text-by-primary">
+            Exportar Excel
+          </a>
+          <a href="/auditorias/exportar/pdf" target="_blank" className="h-8 rounded-md border border-by-primary px-3 text-[12px] font-medium leading-8 text-by-primary">
+            Exportar PDF
+          </a>
+        </div>
         {esCoordinador && <ProgramarAuditoriaForm usuarios={usuarios ?? []} />}
         <ProgramaAuditorias auditorias={auditorias} puedeGestionar={esCoordinador} />
       </div>
