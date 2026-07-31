@@ -124,7 +124,20 @@ const NAV: NavItem[] = [
       { href: '/mantenimiento/metricas', label: 'Métricas' },
     ],
   },
-  { href: '/inocuidad-alimentaria', label: 'Inocuidad Alimentaria' },
+  {
+    label: 'Inocuidad Alimentaria',
+    children: [
+      { href: '/inocuidad-alimentaria/defensa-alimentaria', label: 'Defensa Alimentaria' },
+      { href: '/inocuidad-alimentaria/fraude-alimentario', label: 'Fraude Alimentario' },
+      { href: '/inocuidad-alimentaria/alergenos', label: 'Gestión de Alérgenos' },
+      { href: '/inocuidad-alimentaria/retirada-producto', label: 'Retirada de Producto' },
+      { href: '/inocuidad-alimentaria/simulacros-trazabilidad', label: 'Simulacros de Trazabilidad' },
+      { href: '/inocuidad-alimentaria/gestion-crisis', label: 'Gestión de Crisis' },
+      { href: '/inocuidad-alimentaria/control-plagas', label: 'Control de Plagas' },
+      { href: '/inocuidad-alimentaria/vidrio-plastico', label: 'Vidrio y Plástico Quebradizo' },
+      { href: '/inocuidad-alimentaria/manejo-residuos', label: 'Manejo de Residuos' },
+    ],
+  },
   {
     label: 'TI',
     children: [
@@ -266,3 +279,4 @@ export default async function AppShell({
     </div>
   )
 }
+
