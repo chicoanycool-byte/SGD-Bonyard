@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { dibujarEncabezadoOficial, dibujarPieOficialEnTodasLasPaginas } from '@/lib/pdf/plantillaOficial'
 
-type Columna = { header: string; width: number; get: (row: Record<string, unknown>) => string }
+type Columna = { header: string; width: number; get: (row: Record<string, unknown>) => string; esImagen?: boolean }
 
 function fecha(v: unknown) {
   return v ? new Date(v as string).toLocaleDateString('es-MX') : ''
@@ -29,7 +29,7 @@ const CONFIG: Record<string, { titulo: string; tabla: string; orderCol: string; 
       { header: 'Tipo', width: 40, get: (r) => txt(r.tipo_sello) },
       { header: 'Recibido por', width: 60, get: (r) => txt(r.recibido_por) },
       { header: 'Observaciones', width: 80, get: (r) => txt(r.observaciones) },
-      { header: 'Firma', width: 55, get: (r) => txt(r.firma) },
+      { header: 'Firma', width: 55, get: (r) => txt(r.firma), esImagen: true },
     ],
   },
   entrega: {
@@ -47,7 +47,7 @@ const CONFIG: Record<string, { titulo: string; tabla: string; orderCol: string; 
       { header: 'Tipo', width: 40, get: (r) => txt(r.tipo_sello) },
       { header: 'Recibido por', width: 60, get: (r) => txt(r.recibido_por) },
       { header: 'Observaciones', width: 70, get: (r) => txt(r.observaciones) },
-      { header: 'Firma', width: 45, get: (r) => txt(r.firma) },
+      { header: 'Firma', width: 45, get: (r) => txt(r.firma), esImagen: true },
     ],
   },
   anomalias: {
@@ -64,7 +64,7 @@ const CONFIG: Record<string, { titulo: string; tabla: string; orderCol: string; 
       { header: 'Acción tomada', width: 65, get: (r) => txt(r.accion_tomada) },
       { header: 'Notificado a', width: 55, get: (r) => txt(r.notificado_a) },
       { header: 'Responsable', width: 55, get: (r) => txt(r.responsable_registro) },
-      { header: 'Firma', width: 40, get: (r) => txt(r.firma) },
+      { header: 'Firma', width: 40, get: (r) => txt(r.firma), esImagen: true },
     ],
   },
 }
@@ -110,12 +110,22 @@ export async function GET(request: NextRequest) {
     const yFila = doc.y
     let x = left + 2
     doc.fontSize(6.8).fillColor('#14302B')
-    let alturaMax = 10
+    let alturaMax = 14
     for (const col of config.columnas) {
       const valor = col.get(fila as Record<string, unknown>)
-      doc.text(valor, x, yFila, { width: col.width - 2 })
-      const alto = doc.heightOfString(valor, { width: col.width - 2 })
-      if (alto > alturaMax) alturaMax = alto
+      if (col.esImagen && valor.startsWith('data:image')) {
+        try {
+          const base64 = valor.split(',')[1]
+          const buffer = Buffer.from(base64, 'base64')
+          doc.image(buffer, x, yFila, { fit: [col.width - 2, 20] })
+        } catch {
+          // si la imagen no se puede decodificar, se omite silenciosamente
+        }
+      } else {
+        doc.text(valor, x, yFila, { width: col.width - 2 })
+        const alto = doc.heightOfString(valor, { width: col.width - 2 })
+        if (alto > alturaMax) alturaMax = alto
+      }
       x += col.width
     }
     doc.y = yFila + alturaMax + 4
