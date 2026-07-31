@@ -42,6 +42,19 @@ export async function eliminarItemInventario(id: string) {
   revalidatePath('/inocuidad-alimentaria/vidrio-plastico')
 }
 
+export async function editarItemInventario(formData: FormData) {
+  await requerirCoordinador()
+  const supabase = await createClient()
+
+  const id = String(formData.get('id') ?? '')
+  const area = String(formData.get('area') ?? '').trim()
+  const nombreItem = String(formData.get('nombre_item') ?? '').trim()
+  if (!id || !area || !nombreItem) throw new Error('Faltan datos.')
+
+  await supabase.from('vidrio_inventario_items').update({ area, nombre_item: nombreItem }).eq('id', id)
+  revalidatePath('/inocuidad-alimentaria/vidrio-plastico')
+}
+
 // ---------- Inventario: valores por bimestre ----------
 
 export async function guardarValorInventario(formData: FormData) {
