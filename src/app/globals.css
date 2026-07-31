@@ -51,3 +51,29 @@
 .brand-gradient {
   background: linear-gradient(135deg, var(--color-brand-teal) 0%, var(--color-brand-green) 100%);
 }
+
+/* ============================================================
+   Estilo global de tablas — aplica a TODAS las tablas del sistema.
+   Bordes en cada celda + encabezado con relleno oscuro de marca
+   y letra blanca en negritas.
+   ============================================================ */
+table {
+  border-collapse: collapse !important;
+}
+
+table th,
+table td {
+  border: 1px solid var(--color-border-subtle) !important;
+}
+
+table thead tr,
+table thead th {
+  background-color: var(--color-by-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+table thead th * {
+  color: #ffffff !important;
+}
+
