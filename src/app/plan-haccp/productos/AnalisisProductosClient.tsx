@@ -56,6 +56,14 @@ export default function AnalisisProductosClient({
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex justify-end gap-2">
+        <a href="/plan-haccp/exportar/excel" className="h-8 rounded-md border border-by-primary px-3 text-[12px] font-medium leading-8 text-by-primary">
+          Exportar Excel (Plan HACCP completo)
+        </a>
+        <a href="/plan-haccp/exportar/pdf" target="_blank" className="h-8 rounded-md border border-by-primary px-3 text-[12px] font-medium leading-8 text-by-primary">
+          Exportar PDF (Plan HACCP completo)
+        </a>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-[14px] font-medium text-by-gray-dark">Análisis de Peligros de Productos (FSG-50)</p>
         <div className="flex gap-2">
