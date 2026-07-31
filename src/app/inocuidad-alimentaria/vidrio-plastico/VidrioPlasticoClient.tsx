@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import {
-  crearItemInventario, eliminarItemInventario, guardarValorInventario,
+  crearItemInventario, editarItemInventario, eliminarItemInventario, guardarValorInventario,
   crearIncidenteVidrio, eliminarIncidenteVidrio,
 } from './actions'
 
@@ -46,6 +46,29 @@ function FilaInventario({
 }) {
   const [pendiente, startTransition] = useTransition()
   const [guardado, setGuardado] = useState(false)
+  const [editandoNombre, setEditandoNombre] = useState(false)
+
+  if (editandoNombre) {
+    return (
+      <form
+        action={(fd) =>
+          startTransition(async () => {
+            await editarItemInventario(fd)
+            setEditandoNombre(false)
+          })
+        }
+        className="grid grid-cols-12 items-center gap-1.5 border-b border-black/5 bg-[#fafbfa] px-3 py-1.5 last:border-0"
+      >
+        <input type="hidden" name="id" value={item.id} />
+        <input name="area" defaultValue={item.area} placeholder="Área" className="col-span-3 h-7 rounded-md border border-black/10 px-1.5 text-[11.5px]" />
+        <input name="nombre_item" defaultValue={item.nombre_item} placeholder="Artículo" className="col-span-6 h-7 rounded-md border border-black/10 px-1.5 text-[11.5px]" />
+        <div className="col-span-3 flex items-center gap-2">
+          <button disabled={pendiente} className="text-[10.5px] text-by-accent hover:underline">{pendiente ? '…' : 'Guardar'}</button>
+          <button type="button" onClick={() => setEditandoNombre(false)} className="text-[10.5px] text-by-gray-light hover:underline">Cancelar</button>
+        </div>
+      </form>
+    )
+  }
 
   return (
     <form
@@ -61,7 +84,14 @@ function FilaInventario({
       <input type="hidden" name="item_id" value={item.id} />
       <input type="hidden" name="anio" value={anio} />
       <input type="hidden" name="bimestre" value={bimestre} />
-      <span className="col-span-3 text-[12px] text-by-gray-dark">{item.nombre_item}</span>
+      <span className="col-span-3 text-[12px] text-by-gray-dark">
+        {item.nombre_item}
+        {esCoordinador && (
+          <button type="button" onClick={() => setEditandoNombre(true)} className="ml-1.5 text-[10px] text-by-accent hover:underline">
+            editar
+          </button>
+        )}
+      </span>
       <input name="cantidad" type="number" defaultValue={valor?.cantidad ?? ''} placeholder="Cant." disabled={!esCoordinador} className="col-span-1 h-7 rounded-md border border-black/10 px-1.5 text-[11.5px]" />
       <input name="vidrio" type="number" defaultValue={valor?.vidrio ?? ''} placeholder="Vidrio" disabled={!esCoordinador} className="col-span-1 h-7 rounded-md border border-black/10 px-1.5 text-[11.5px]" />
       <input name="acrilico" type="number" defaultValue={valor?.acrilico ?? ''} placeholder="Acríl." disabled={!esCoordinador} className="col-span-1 h-7 rounded-md border border-black/10 px-1.5 text-[11.5px]" />
