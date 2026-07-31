@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import FirmaCanvas from '@/components/FirmaCanvas'
 import {
   crearRecepcionSello, eliminarRecepcionSello,
   crearEntregaSello, eliminarEntregaSello,
@@ -112,7 +113,7 @@ export default function ControlSellosClient({
                 <option value="Cable">Cable</option>
               </select>
               <input name="recibido_por" placeholder="Recibido por" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
-              <input name="firma" placeholder="Firma" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
+              <FirmaCanvas name="firma" label="Firma" />
               <input name="observaciones" placeholder="Observaciones" className="col-span-2 h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <button disabled={pendiente} className="col-span-4 h-8 w-fit rounded-md border border-by-accent px-3 text-[12px] text-by-accent">
                 {pendiente ? 'Guardando…' : 'Guardar recepción'}
@@ -150,7 +151,7 @@ export default function ControlSellosClient({
                     <td className="px-2 py-1.5 text-by-gray-light">{r.tipo_sello ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.recibido_por ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.observaciones ?? '—'}</td>
-                    <td className="px-2 py-1.5 text-by-gray-light">{r.firma ?? '—'}</td>
+                    <td className="px-2 py-1.5">{r.firma && r.firma.startsWith('data:image') ? <img src={r.firma} alt="Firma" className="h-8 w-20 rounded border border-black/10 bg-white object-contain" /> : <span className="text-by-gray-light">{r.firma ?? '—'}</span>}</td>
                     <td className="px-2 py-1.5">
                       <button onClick={() => startTransition(() => eliminarRecepcionSello(r.id))} className="text-[10.5px] text-red-500 hover:underline">Eliminar</button>
                     </td>
@@ -194,7 +195,7 @@ export default function ControlSellosClient({
               <input name="sello_final" placeholder="No. de sello (final)" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <input name="cantidad" type="number" placeholder="Cantidad" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <input name="recibido_por" placeholder="Recibido por" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
-              <input name="firma" placeholder="Firma" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
+              <FirmaCanvas name="firma" label="Firma" />
               <input name="observaciones" placeholder="Observaciones" className="col-span-3 h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <button disabled={pendiente} className="col-span-4 h-8 w-fit rounded-md border border-by-accent px-3 text-[12px] text-by-accent">
                 {pendiente ? 'Guardando…' : 'Guardar entrega'}
@@ -232,7 +233,7 @@ export default function ControlSellosClient({
                     <td className="px-2 py-1.5 text-by-gray-light">{r.tipo_sello ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.recibido_por ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.observaciones ?? '—'}</td>
-                    <td className="px-2 py-1.5 text-by-gray-light">{r.firma ?? '—'}</td>
+                    <td className="px-2 py-1.5">{r.firma && r.firma.startsWith('data:image') ? <img src={r.firma} alt="Firma" className="h-8 w-20 rounded border border-black/10 bg-white object-contain" /> : <span className="text-by-gray-light">{r.firma ?? '—'}</span>}</td>
                     <td className="px-2 py-1.5">
                       <button onClick={() => startTransition(() => eliminarEntregaSello(r.id))} className="text-[10.5px] text-red-500 hover:underline">Eliminar</button>
                     </td>
@@ -270,7 +271,7 @@ export default function ControlSellosClient({
               <input name="accion_tomada" placeholder="Acción tomada" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <input name="notificado_a" placeholder="Notificado a" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <input name="responsable_registro" placeholder="Responsable del registro" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
-              <input name="firma" placeholder="Firma" className="h-8 rounded-md border border-black/10 px-2 text-[12px]" />
+              <FirmaCanvas name="firma" label="Firma" />
               <input name="observaciones" placeholder="Observaciones" className="col-span-3 h-8 rounded-md border border-black/10 px-2 text-[12px]" />
               <button disabled={pendiente} className="col-span-4 h-8 w-fit rounded-md border border-by-accent px-3 text-[12px] text-by-accent">
                 {pendiente ? 'Guardando…' : 'Guardar anomalía'}
@@ -308,7 +309,7 @@ export default function ControlSellosClient({
                     <td className="px-2 py-1.5 text-by-gray-light">{r.notificado_a ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.responsable_registro ?? '—'}</td>
                     <td className="px-2 py-1.5 text-by-gray-light">{r.observaciones ?? '—'}</td>
-                    <td className="px-2 py-1.5 text-by-gray-light">{r.firma ?? '—'}</td>
+                    <td className="px-2 py-1.5">{r.firma && r.firma.startsWith('data:image') ? <img src={r.firma} alt="Firma" className="h-8 w-20 rounded border border-black/10 bg-white object-contain" /> : <span className="text-by-gray-light">{r.firma ?? '—'}</span>}</td>
                     <td className="px-2 py-1.5">
                       <button onClick={() => startTransition(() => eliminarAnomaliaSello(r.id))} className="text-[10.5px] text-red-500 hover:underline">Eliminar</button>
                     </td>
