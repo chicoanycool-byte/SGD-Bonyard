@@ -25,6 +25,67 @@ function colorPct(p: number | null) {
   return 'text-[#a13c33]'
 }
 
+function GraficaComparativaMensual({
+  datos,
+  naves,
+}: {
+  datos: { mes: string; valores: Record<string, number | null> }[]
+  naves: string[]
+}) {
+  const COLORES = ['#14302B', '#2296ad', '#9a6b1c', '#6b4fa0', '#a13c33']
+  const ancho = 720
+  const alto = 220
+  const margen = { top: 16, right: 16, bottom: 40, left: 36 }
+  const w = ancho - margen.left - margen.right
+  const h = alto - margen.top - margen.bottom
+  const grupoAncho = w / Math.max(datos.length, 1)
+  const barraAncho = Math.min(24, (grupoAncho - 10) / Math.max(naves.length, 1))
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${ancho} ${alto}`} className="w-full" style={{ maxHeight: 260 }}>
+        {[0, 25, 50, 75, 100].map((v) => {
+          const y = margen.top + h - (v / 100) * h
+          return (
+            <g key={v}>
+              <line x1={margen.left} x2={ancho - margen.right} y1={y} y2={y} stroke="#eceee9" strokeWidth={1} />
+              <text x={2} y={y + 3} fontSize={8} fill="#8a8a85">{v}%</text>
+            </g>
+          )
+        })}
+        <line x1={margen.left} x2={margen.left} y1={margen.top} y2={margen.top + h} stroke="#c9c9c2" strokeWidth={1} />
+
+        {datos.map((d, gi) => {
+          const gx = margen.left + gi * grupoAncho + (grupoAncho - barraAncho * naves.length) / 2
+          return (
+            <g key={d.mes}>
+              {naves.map((n, ni) => {
+                const valor = d.valores[n]
+                if (valor == null) return null
+                const barH = (valor / 100) * h
+                const x = gx + ni * barraAncho
+                const y = margen.top + h - barH
+                return <rect key={n} x={x} y={y} width={barraAncho - 2} height={barH} fill={COLORES[ni % COLORES.length]} rx={1.5} />
+              })}
+              <text x={margen.left + gi * grupoAncho + grupoAncho / 2} y={alto - 22} fontSize={8} fill="#8a8a85" textAnchor="middle">
+                {d.mes}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+      <div className="mt-1 flex flex-wrap justify-center gap-3">
+        {naves.map((n, i) => (
+          <span key={n} className="flex items-center gap-1 text-[11px] text-by-gray-light">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: COLORES[i % COLORES.length] }} />
+            {n}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
@@ -111,6 +172,23 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
       .map(([mes, v]) => ({ mes, ...v, pct: pct(v.cumplen, v.total) }))
   }, [filtrados])
 
+  // ---------- Cumplimiento por mes × nave (para gráfico comparativo) ----------
+  const porMesPorNave = useMemo(() => {
+    const navesEnDatos = nave ? [nave] : naves
+    const meses = [...new Set(porMes.map((m) => m.mes))].sort()
+    return meses.map((mes) => {
+      const valores: Record<string, number | null> = {}
+      for (const n of navesEnDatos) {
+        const grupo = filtrados.filter(
+          (h) => h.nave === n && h.recorrido_fecha?.slice(0, 7) === mes && (h.respuesta === 'cumple' || h.respuesta === 'no_cumple')
+        )
+        const c = grupo.filter((h) => h.respuesta === 'cumple').length
+        valores[n] = pct(c, grupo.length)
+      }
+      return { mes, valores }
+    })
+  }, [filtrados, naves, nave, porMes])
+
   const topAreasNC = useMemo(() => {
     const map = new Map<string, number>()
     for (const h of noConformesFiltradasPorNivel) {
@@ -126,7 +204,16 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-xl border border-black/5 bg-white p-4">
-        <p className="mb-3 text-[13px] font-medium text-by-gray-dark">Filtros</p>
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[13px] font-medium text-by-gray-dark">Filtros</p>
+          <a
+            href={`/recorridos-bpa/dashboard/exportar/pdf?${new URLSearchParams({ desde, hasta, nave, area }).toString()}`}
+            target="_blank"
+            className="h-8 rounded-md border border-by-primary px-3 text-[12px] font-medium leading-8 text-by-primary"
+          >
+            Exportar PDF
+          </a>
+        </div>
         <div className="grid grid-cols-4 gap-3">
           <div>
             <label className="mb-1 block text-[11px] text-by-gray-dark">Desde</label>
@@ -275,6 +362,14 @@ export default function DashboardBpa({ hallazgos }: { hallazgos: Hallazgo[] }) {
           </tbody>
         </table>
       </div>
+
+      {/* Gráfico comparativo por mes y nave */}
+      {porMes.length > 0 && (
+        <div className="rounded-xl border border-black/5 bg-white p-4">
+          <p className="mb-2 text-[13px] font-medium text-by-gray-dark">Comparativa de cumplimiento por mes{!nave && naves.length > 1 ? ' y nave' : ''}</p>
+          <GraficaComparativaMensual datos={porMesPorNave} naves={nave ? [nave] : naves} />
+        </div>
+      )}
 
       {/* Tendencia por mes */}
       {porMes.length > 0 && (
