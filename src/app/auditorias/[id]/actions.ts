@@ -72,7 +72,7 @@ export async function iniciarAuditoria(auditoriaId: string) {
       .eq('auditoria_id', auditoriaId)
 
     if (!count || count === 0) {
-      const items = checklistPorNorma(auditoria.norma)
+      const items = checklistPorNorma(auditoria.norma, auditoria.tipo)
       if (items.length > 0) {
         await supabase.from('auditoria_hallazgos').insert(
           items.map((item, i) => ({
