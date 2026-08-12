@@ -11,14 +11,15 @@ export default async function DashboardBpaPage() {
   const { data } = await supabase
     .from('bpa_respuestas')
     .select(
-      'respuesta, estatus, fecha_compromiso, fecha_cierre_real, checklist:bpa_checklist(area, nivel_riesgo), recorrido:bpa_recorridos(fecha, naves_inspeccionadas)'
+      'respuesta, estatus, fecha_compromiso, fecha_cierre_real, checklist:bpa_checklist(area, subarea, nivel_riesgo), recorrido:bpa_recorridos(fecha, naves_inspeccionadas)'
     )
 
   const hallazgos = (data ?? []).map((h) => {
-    const checklist = h.checklist as unknown as { area: string | null; nivel_riesgo: string | null } | null
+    const checklist = h.checklist as unknown as { area: string | null; subarea: string | null; nivel_riesgo: string | null } | null
     const recorrido = h.recorrido as unknown as { fecha: string; naves_inspeccionadas: string | null } | null
     return {
       area: checklist?.area ?? null,
+      subarea: checklist?.subarea ?? null,
       nivel_riesgo: checklist?.nivel_riesgo ?? null,
       respuesta: h.respuesta as string | null,
       estatus: h.estatus as string,
@@ -37,7 +38,7 @@ export default async function DashboardBpaPage() {
       activo="/recorridos-bpa"
     >
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-[14px] font-medium text-by-gray-dark">Dashboard de Recorridos BPA</p>
+        <p className="text-[14px] font-medium text-by-gray-dark">Métricas de Recorridos BPA</p>
         <Link
           href="/recorridos-bpa"
           className="h-8 rounded-md border border-black/10 px-3 text-[12px] font-medium leading-8 text-by-gray-dark transition hover:bg-black/5"
