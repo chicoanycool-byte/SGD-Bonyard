@@ -37,7 +37,7 @@ export default async function DetalleAuditoriaPage({
     supabase.from('usuarios').select('id, nombre').eq('estatus', 'activo').order('nombre'),
     supabase
       .from('auditoria_hallazgos')
-      .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia')
+      .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia, norma_clausula, nivel_riesgo')
       .eq('auditoria_id', id)
       .order('orden'),
     supabase.from('auditoria_agenda').select('*').eq('auditoria_id', id).order('orden'),
