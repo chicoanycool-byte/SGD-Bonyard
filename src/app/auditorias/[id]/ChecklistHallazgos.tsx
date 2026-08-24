@@ -19,6 +19,8 @@ type Hallazgo = {
   tipo_nc: string | null
   comentario: string | null
   clasificacion_ia: string | null
+  norma_clausula: 'ISO' | 'SQF' | 'AMBAS' | null
+  nivel_riesgo: string | null
 }
 
 const RESULTADO_ESTILO: Record<string, string> = {
@@ -26,6 +28,47 @@ const RESULTADO_ESTILO: Record<string, string> = {
   no_conforme: 'bg-[#fdecea] text-[#a13c33]',
   oportunidad_mejora: 'bg-[#fdf3e3] text-[#9a6b1c]',
   no_aplica: 'bg-[#f1efe8] text-[#5f5e5a]',
+}
+
+const NORMA_ESTILO: Record<string, string> = {
+  ISO: 'bg-[#e6f0fa] text-[#2d5f8a]',
+  SQF: 'bg-[#f0eafa] text-[#6b4fa0]',
+  AMBAS: 'bg-[#eaf5f0] text-[#3d6b53]',
+}
+
+const RIESGO_ESTILO: Record<string, string> = {
+  Alto: 'bg-[#fdecea] text-[#a13c33]',
+  Medio: 'bg-[#fdf3e3] text-[#9a6b1c]',
+  Bajo: 'bg-[#f1efe8] text-[#5f5e5a]',
+}
+
+// Guía oficial de clasificación de hallazgos (FSG-57 — hoja "16 Clasificación Hallazgos")
+const OPCIONES_NC: Record<string, { value: string; label: string }[]> = {
+  ISO: [
+    { value: 'observacion', label: 'Observación' },
+    { value: 'oportunidad_mejora', label: 'Oportunidad de mejora' },
+    { value: 'nc_menor', label: 'No conformidad menor' },
+    { value: 'nc_mayor', label: 'No conformidad mayor' },
+  ],
+  SQF: [
+    { value: 'nc_menor', label: 'NC Menor (Minor)' },
+    { value: 'nc_mayor', label: 'NC Mayor (Major)' },
+    { value: 'nc_critica', label: 'NC Crítica (Critical)' },
+  ],
+  AMBAS: [
+    { value: 'observacion', label: 'Observación (ISO)' },
+    { value: 'oportunidad_mejora', label: 'Oportunidad de mejora (ISO)' },
+    { value: 'nc_menor', label: 'No conformidad menor' },
+    { value: 'nc_mayor', label: 'No conformidad mayor' },
+    { value: 'nc_critica', label: 'NC Crítica (SQF)' },
+  ],
+  DEFAULT: [
+    { value: 'observacion', label: 'Observación (ISO)' },
+    { value: 'oportunidad_mejora', label: 'Oportunidad de mejora (ISO)' },
+    { value: 'nc_menor', label: 'No conformidad menor' },
+    { value: 'nc_mayor', label: 'No conformidad mayor' },
+    { value: 'nc_critica', label: 'NC Crítica (SQF)' },
+  ],
 }
 
 function FilaHallazgo({
@@ -41,7 +84,8 @@ function FilaHallazgo({
 }) {
   const [pending, startTransition] = useTransition()
   const [conformidad, setConformidad] = useState(h.conformidad)
-  const [tipoNc, setTipoNc] = useState(h.tipo_nc ?? 'menor')
+  const opcionesNc = OPCIONES_NC[h.norma_clausula ?? 'DEFAULT'] ?? OPCIONES_NC.DEFAULT
+  const [tipoNc, setTipoNc] = useState(h.tipo_nc ?? opcionesNc[0].value)
   const [comentario, setComentario] = useState(h.comentario ?? '')
   const [evidencia, setEvidencia] = useState(h.evidencia ?? '')
   const [sugerencia, setSugerencia] = useState(h.clasificacion_ia ?? '')
@@ -54,7 +98,7 @@ function FilaHallazgo({
   async function pedirSugerencia() {
     setSugiriendo(true)
     try {
-      const resultado = await sugerirClasificacion(h.requisito, evidencia || comentario)
+      const resultado = await sugerirClasificacion(h.requisito, evidencia || comentario, h.norma_clausula)
       setConformidad(resultado.conformidad)
       if (resultado.tipo_nc) setTipoNc(resultado.tipo_nc)
       setSugerencia(resultado.justificacion)
@@ -74,7 +118,21 @@ function FilaHallazgo({
 
   return (
     <tr className="border-b border-black/5 last:border-0 align-top">
-      <td className="w-16 px-3 py-2 text-by-gray-light">{h.clausula ?? '—'}</td>
+      <td className="w-20 px-3 py-2 text-by-gray-light">
+        {h.clausula ?? '—'}
+        <div className="mt-1 flex flex-wrap gap-1">
+          {h.norma_clausula && (
+            <span className={'rounded-full px-1.5 py-0.5 text-[9.5px] font-medium ' + (NORMA_ESTILO[h.norma_clausula] ?? '')}>
+              {h.norma_clausula}
+            </span>
+          )}
+          {h.nivel_riesgo && (
+            <span className={'rounded-full px-1.5 py-0.5 text-[9.5px] font-medium ' + (RIESGO_ESTILO[h.nivel_riesgo] ?? '')}>
+              {h.nivel_riesgo}
+            </span>
+          )}
+        </div>
+      </td>
       <td className="min-w-[220px] px-3 py-2 text-by-gray-dark">
         {h.requisito}
         {h.documento_referencia && (
@@ -119,7 +177,7 @@ function FilaHallazgo({
           className={inputCls}
         />
       </td>
-      <td className="w-40 px-3 py-2">
+      <td className="w-44 px-3 py-2">
         {conformidad === 'no_conforme' && (
           <div className="flex flex-col gap-1">
             <select
@@ -131,9 +189,9 @@ function FilaHallazgo({
               }}
               className={inputCls}
             >
-              <option value="mayor">Mayor</option>
-              <option value="menor">Menor</option>
-              <option value="oportunidad_mejora">Oportunidad de mejora</option>
+              {opcionesNc.map((op) => (
+                <option key={op.value} value={op.value}>{op.label}</option>
+              ))}
             </select>
             {!bloqueado && puedeEditar && (
               <button
@@ -251,7 +309,7 @@ export default function ChecklistHallazgos({
         <form
           ref={formRef}
           action={onSubmit}
-          className="grid grid-cols-5 gap-2 border-t border-black/5 p-3"
+          className="grid grid-cols-6 gap-2 border-t border-black/5 p-3"
         >
           <input
             name="requisito"
@@ -274,13 +332,23 @@ export default function ChecklistHallazgos({
             <option value="no_aplica">N.A.</option>
           </select>
           <select
-            name="tipo_nc"
-            defaultValue="menor"
+            name="norma_clausula"
+            defaultValue=""
             className="h-8 rounded-md border border-black/10 px-2.5 text-[12.5px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           >
-            <option value="mayor">Mayor</option>
-            <option value="menor">Menor</option>
-            <option value="oportunidad_mejora">Oportunidad de mejora</option>
+            <option value="">Norma (opcional)</option>
+            <option value="ISO">ISO 9001</option>
+            <option value="SQF">SQF</option>
+            <option value="AMBAS">Ambas</option>
+          </select>
+          <select
+            name="tipo_nc"
+            defaultValue="nc_menor"
+            className="h-8 rounded-md border border-black/10 px-2.5 text-[12.5px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
+          >
+            {OPCIONES_NC.DEFAULT.map((op) => (
+              <option key={op.value} value={op.value}>{op.label}</option>
+            ))}
           </select>
           <input
             name="comentario"
@@ -290,7 +358,7 @@ export default function ChecklistHallazgos({
           <button
             type="submit"
             disabled={pending}
-            className="col-span-5 h-8 w-fit rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
+            className="col-span-6 h-8 w-fit rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
           >
             {pending ? 'Agregando…' : 'Agregar hallazgo'}
           </button>
