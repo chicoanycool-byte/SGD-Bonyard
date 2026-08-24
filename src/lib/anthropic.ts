@@ -303,30 +303,47 @@ ${catalogoDocumentos || 'Sin documentos cargados todavía.'}`
 
 export type ClasificacionHallazgo = {
   conformidad: 'conforme' | 'no_conforme' | 'oportunidad_mejora'
-  tipo_nc: 'mayor' | 'menor' | 'oportunidad_mejora' | null
+  tipo_nc: 'observacion' | 'oportunidad_mejora' | 'nc_menor' | 'nc_mayor' | 'nc_critica' | null
   justificacion: string
 }
 
 export async function clasificarHallazgo(
   requisito: string,
-  evidencia: string
+  evidencia: string,
+  norma?: 'ISO' | 'SQF' | 'AMBAS' | null
 ): Promise<ClasificacionHallazgo | null> {
-  const prompt = `Eres un auditor experto en ISO 9001:2015 y SQF para una empresa 3PL de logística.
+  const guiaIso = `ISO 9001:2015 (usa estos 4 niveles si el punto es ISO):
+- "observacion": se cumple el requisito, pero la evidencia es débil, inconsistente o depende de una sola persona.
+- "oportunidad_mejora": el requisito se cumple completamente; la mejora es opcional, no hay incumplimiento.
+- "nc_menor": incumplimiento puntual/aislado; un solo registro, caso o evento incumple el requisito; no hay patrón repetitivo.
+- "nc_mayor": ausencia total de un proceso requerido, o incumplimiento sistemático/repetido que compromete la eficacia del SGC.`
 
-Analiza el siguiente hallazgo de auditoría y clasifícalo.
+  const guiaSqf = `SQF Edition 9 (usa estos 3 niveles si el punto es SQF):
+- "nc_menor" (Minor): falla aleatoria o infrecuente en un requisito, sin ruptura del sistema de inocuidad; evidencia incompleta en un caso puntual.
+- "nc_mayor" (Major): falla de un elemento del sistema, ruptura sistémica del sistema de inocuidad, desviación seria o ausencia de evidencia de un elemento aplicable; riesgo de inocuidad evidente.
+- "nc_critica" (Critical): ruptura de control en un PCC, programa de prerrequisito u otro paso del proceso, con probabilidad de riesgo significativo a la salud pública, o falsificación sistémica de registros.`
+
+  const guia =
+    norma === 'ISO' ? guiaIso : norma === 'SQF' ? guiaSqf : `${guiaIso}\n\n${guiaSqf}\n\nSi no es claro a cuál norma aplica el punto, usa tu mejor juicio para elegir el nivel más apropiado entre ambas guías.`
+
+  const prompt = `Eres un auditor experto en ISO 9001:2015 y SQF Edition 9 para una empresa 3PL de logística de grado alimenticio (BONYARD).
+
+Analiza el siguiente hallazgo de auditoría y clasifícalo con base ESTRICTA en la guía oficial de clasificación de hallazgos de la empresa.
 
 Requisito auditado: ${requisito}
-Evidencia observada: ${evidencia}
+Evidencia observada durante la auditoría: ${evidencia}
+
+${guia}
 
 Responde SOLO con un JSON válido (sin markdown, sin texto adicional) con este formato exacto:
-{"conformidad": "conforme" | "no_conforme" | "oportunidad_mejora", "tipo_nc": "mayor" | "menor" | "oportunidad_mejora" | null, "justificacion": "una frase breve explicando por qué"}
+{"conformidad": "conforme" | "no_conforme" | "oportunidad_mejora", "tipo_nc": "observacion" | "oportunidad_mejora" | "nc_menor" | "nc_mayor" | "nc_critica" | null, "justificacion": "una frase breve citando el criterio de la guía que aplica"}
 
 Reglas:
-- "conforme": la evidencia cumple el requisito sin desviaciones. tipo_nc debe ser null.
-- "no_conforme": hay incumplimiento real del requisito. Clasifica tipo_nc como "mayor" (incumplimiento sistémico, repetido, o ausencia total de evidencia/control) o "menor" (desviación puntual, aislada, de bajo impacto).
-- "oportunidad_mejora": cumple el requisito pero hay margen de mejora, sin ser una no conformidad. En este caso usa conformidad="oportunidad_mejora" y tipo_nc="oportunidad_mejora".`
+- "conforme": la evidencia cumple el requisito sin desviaciones ni observaciones. tipo_nc debe ser null.
+- "oportunidad_mejora": cumple el requisito pero hay margen de mejora opcional (aplica solo si la norma del punto es ISO o AMBAS). conformidad="oportunidad_mejora", tipo_nc="oportunidad_mejora".
+- "no_conforme": hay incumplimiento real o evidencia débil. Usa exactamente uno de los niveles de tipo_nc según la guía y la norma aplicable al punto. No inventes niveles fuera de la guía.`
 
-  const texto = await llamarClaude(prompt, 300)
+  const texto = await llamarClaude(prompt, 350)
   if (!texto) return null
 
   try {
