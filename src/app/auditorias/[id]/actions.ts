@@ -73,6 +73,7 @@ export async function iniciarAuditoria(auditoriaId: string) {
 
     if (!count || count === 0) {
       const items = checklistPorNorma(auditoria.norma, auditoria.tipo)
+      const normaAuditoria = auditoria.norma === 'iso_9001' ? 'ISO' : auditoria.norma === 'sqf' ? 'SQF' : null
       if (items.length > 0) {
         await supabase.from('auditoria_hallazgos').insert(
           items.map((item, i) => ({
@@ -83,6 +84,8 @@ export async function iniciarAuditoria(auditoriaId: string) {
             evidencia_sugerida: item.evidencia_sugerida,
             conformidad: 'conforme' as const,
             orden: i,
+            norma_clausula: item.norma ?? normaAuditoria,
+            nivel_riesgo: item.nivel_riesgo ?? null,
           }))
         )
       }
@@ -92,12 +95,12 @@ export async function iniciarAuditoria(auditoriaId: string) {
   revalidatePath(`/auditorias/${auditoriaId}`)
 }
 
-export async function sugerirClasificacion(requisito: string, evidencia: string) {
+export async function sugerirClasificacion(requisito: string, evidencia: string, norma?: 'ISO' | 'SQF' | 'AMBAS' | null) {
   await requerirUsuario()
   if (!requisito.trim() || !evidencia.trim()) {
     throw new Error('Escribe el requisito y la evidencia primero.')
   }
-  const resultado = await clasificarHallazgo(requisito, evidencia)
+  const resultado = await clasificarHallazgo(requisito, evidencia, norma)
   if (!resultado) {
     throw new Error('La IA no está disponible en este momento (revisa la API key).')
   }
@@ -145,6 +148,7 @@ export async function agregarHallazgo(auditoriaId: string, formData: FormData) {
   const tipoNc = String(formData.get('tipo_nc') ?? '') || null
   const comentario = String(formData.get('comentario') ?? '').trim()
   const clasificacionIa = String(formData.get('clasificacion_ia') ?? '') || null
+  const normaClausula = String(formData.get('norma_clausula') ?? '') || null
 
   if (!requisito) return
 
@@ -161,6 +165,7 @@ export async function agregarHallazgo(auditoriaId: string, formData: FormData) {
     tipo_nc: conformidad === 'no_conforme' ? tipoNc : null,
     comentario: comentario || null,
     clasificacion_ia: clasificacionIa,
+    norma_clausula: normaClausula,
     orden: count ?? 0,
   })
 
