@@ -77,3 +77,24 @@ table thead th * {
   color: #ffffff !important;
 }
 
+
+/* Formularios más legibles y fáciles de tocar en todo el sistema.
+   Se omiten los formularios que contienen tablas (listas compactas) y los marcados como compactos. */
+main form:not(:has(table)):not([data-compacto]) label {
+  font-size: 13px !important;
+  font-weight: 500;
+}
+main form:not(:has(table)):not([data-compacto]) input:not([type='checkbox']):not([type='radio']):not([type='file']),
+main form:not(:has(table)):not([data-compacto]) select {
+  min-height: 2.5rem;
+  font-size: 14px !important;
+  border-radius: 0.5rem;
+}
+main form:not(:has(table)):not([data-compacto]) textarea {
+  font-size: 14px !important;
+  border-radius: 0.5rem;
+}
+main form:not(:has(table)):not([data-compacto]) button[type='submit'] {
+  min-height: 2.5rem;
+  font-size: 14px !important;
+}

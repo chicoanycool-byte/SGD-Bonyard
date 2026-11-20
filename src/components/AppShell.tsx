@@ -1,3 +1,4 @@
+import { AYUDA_PANTALLAS } from '@/lib/ayudaPantallas'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Search } from 'lucide-react'
@@ -287,6 +288,20 @@ export default async function AppShell({
           <div className="mb-3">
             <BotonesAtrasActualizar />
           </div>
+          {AYUDA_PANTALLAS[activo] && (
+            <details className="mb-3 rounded-xl border border-by-accent/30 bg-by-accent/5 px-4 py-2.5 text-[13px] text-by-gray-dark">
+              <summary className="cursor-pointer list-none">
+                <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-by-accent text-[11px] font-semibold text-by-primary">?</span>
+                {AYUDA_PANTALLAS[activo].sirve}
+                <span className="ml-2 text-[12px] text-by-primary underline">Cómo se usa</span>
+              </summary>
+              <ol className="mt-2 list-decimal space-y-0.5 pl-9 text-[12.5px]">
+                {AYUDA_PANTALLAS[activo].pasos.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ol>
+            </details>
+          )}
           <FiltrosTablas>{children}</FiltrosTablas>
         </main>
       </div>
