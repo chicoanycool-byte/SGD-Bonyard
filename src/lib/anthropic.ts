@@ -303,7 +303,7 @@ ${catalogoDocumentos || 'Sin documentos cargados todavía.'}`
 
 export type ClasificacionHallazgo = {
   conformidad: 'conforme' | 'no_conforme' | 'oportunidad_mejora'
-  tipo_nc: 'observacion' | 'oportunidad_mejora' | 'nc_menor' | 'nc_mayor' | 'nc_critica' | null
+  tipo_nc: 'observacion' | 'oportunidad_mejora' | 'menor' | 'mayor' | 'critica' | null
   justificacion: string
 }
 
@@ -349,9 +349,15 @@ Reglas:
   try {
     const limpio = texto.trim().replace(/^```json\s*/i, '').replace(/```\s*$/i, '')
     const json = JSON.parse(limpio)
+    // La base usa menor / mayor / critica; la guía de la IA habla de nc_menor / nc_mayor / nc_critica
+    const aEnum: Record<string, ClasificacionHallazgo['tipo_nc']> = {
+      nc_menor: 'menor', nc_mayor: 'mayor', nc_critica: 'critica',
+      menor: 'menor', mayor: 'mayor', critica: 'critica',
+      observacion: 'observacion', oportunidad_mejora: 'oportunidad_mejora',
+    }
     return {
       conformidad: json.conformidad,
-      tipo_nc: json.tipo_nc ?? null,
+      tipo_nc: json.tipo_nc ? (aEnum[json.tipo_nc] ?? null) : null,
       justificacion: json.justificacion ?? '',
     }
   } catch {

@@ -153,6 +153,7 @@ export default async function DetalleAuditoriaPage({
         {(hallazgos ?? []).some((h) => h.proceso) ? (
           <ChecklistFSG57
             auditoriaId={auditoria.id}
+            nave={auditoria.nave}
             hallazgos={hallazgos ?? []}
             puedeEditar={puedeEditar}
             bloqueado={auditoria.estatus === 'cerrada' || auditoria.estatus === 'cancelada'}

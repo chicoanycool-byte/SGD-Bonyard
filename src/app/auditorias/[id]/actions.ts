@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { clasificarHallazgo, generarResumenInforme } from '@/lib/anthropic'
-import { checklistPorNorma } from '@/lib/checklistsAuditoria'
+import { checklistPorNorma, CHECKLIST_INTERNA_AMBAS_NORMAS } from '@/lib/checklistsAuditoria'
 import { CHECKLIST_NAVE1 } from '@/lib/checklistNave1'
 
 async function puedeEditar(
@@ -72,9 +72,30 @@ export async function iniciarAuditoria(auditoriaId: string) {
       .select('id', { count: 'exact', head: true })
       .eq('auditoria_id', auditoriaId)
 
-    const usaFsg57Nave1 = auditoria.norma === 'ambas' && auditoria.nave !== 'Nave 2'
+    const esAmbas = auditoria.norma === 'ambas'
 
-    if ((!count || count === 0) && usaFsg57Nave1) {
+    if ((!count || count === 0) && esAmbas && auditoria.nave === 'Nave 2') {
+      // Ambas normas, Nave 2: mismas preguntas de siempre, agrupadas por proceso
+      await supabase.from('auditoria_hallazgos').insert(
+        CHECKLIST_INTERNA_AMBAS_NORMAS.map((item, i) => {
+          const [prefijo, ...resto] = item.documento_referencia.split(' — ')
+          return {
+            auditoria_id: auditoriaId,
+            clausula: item.clausula,
+            requisito: item.requisito,
+            documento_referencia: resto.length ? resto.join(' — ') : item.documento_referencia,
+            evidencia_sugerida: item.evidencia_sugerida,
+            conformidad: 'conforme' as const,
+            orden: i,
+            norma_clausula: item.norma ?? 'AMBAS',
+            nivel_riesgo: item.nivel_riesgo ?? null,
+            proceso: resto.length ? prefijo.trim() : 'General',
+            tema: null,
+            resultado: null,
+          }
+        })
+      )
+    } else if ((!count || count === 0) && esAmbas) {
       // Ambas normas: FSG-57 oficial de Nave 1, agrupado por proceso (resultado vacío = pendiente)
       await supabase.from('auditoria_hallazgos').insert(
         CHECKLIST_NAVE1.map((item, i) => ({
@@ -117,12 +138,10 @@ export async function iniciarAuditoria(auditoriaId: string) {
 
 const RESULTADO_FSG57: Record<string, { conformidad: string; tipo_nc: string | null }> = {
   C: { conformidad: 'conforme', tipo_nc: null },
-  O: { conformidad: 'oportunidad_mejora', tipo_nc: null },
-  OM: { conformidad: 'oportunidad_mejora', tipo_nc: 'oportunidad_mejora' },
+  O: { conformidad: 'conforme', tipo_nc: 'observacion' },
   NCm: { conformidad: 'no_conforme', tipo_nc: 'menor' },
   NCM: { conformidad: 'no_conforme', tipo_nc: 'mayor' },
   NCC: { conformidad: 'no_conforme', tipo_nc: 'critica' },
-  NA: { conformidad: 'no_aplica', tipo_nc: null },
 }
 
 export async function guardarFsg57(

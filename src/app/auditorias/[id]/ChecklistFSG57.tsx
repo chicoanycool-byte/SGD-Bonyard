@@ -18,13 +18,11 @@ type Hallazgo = {
 }
 
 const RESULTADOS = [
-  { id: 'C', label: 'Cumple', activo: 'bg-[#3d8b66] text-white border-[#3d8b66]', reposo: 'text-[#3d6b53] border-[#3d8b66]/40 hover:bg-[#eaf5f0]' },
+  { id: 'C', label: 'Conforme', activo: 'bg-[#3d8b66] text-white border-[#3d8b66]', reposo: 'text-[#3d6b53] border-[#3d8b66]/40 hover:bg-[#eaf5f0]' },
   { id: 'O', label: 'Observación', activo: 'bg-[#c9922e] text-white border-[#c9922e]', reposo: 'text-[#9a6b1c] border-[#c9922e]/40 hover:bg-[#fdf3e3]' },
-  { id: 'OM', label: 'Oport. mejora', activo: 'bg-[#2d7fb8] text-white border-[#2d7fb8]', reposo: 'text-[#2d5f8a] border-[#2d7fb8]/40 hover:bg-[#e6f0fa]' },
-  { id: 'NCm', label: 'NC menor', activo: 'bg-[#d9772b] text-white border-[#d9772b]', reposo: 'text-[#a85a1c] border-[#d9772b]/40 hover:bg-[#fdf0e3]' },
-  { id: 'NCM', label: 'NC mayor', activo: 'bg-[#c4453a] text-white border-[#c4453a]', reposo: 'text-[#a13c33] border-[#c4453a]/40 hover:bg-[#fdecea]' },
-  { id: 'NCC', label: 'NC crítica', activo: 'bg-[#7a1f1f] text-white border-[#7a1f1f]', reposo: 'text-[#7a1f1f] border-[#7a1f1f]/40 hover:bg-[#fbe6e6]' },
-  { id: 'NA', label: 'N.A.', activo: 'bg-[#6b6a64] text-white border-[#6b6a64]', reposo: 'text-[#5f5e5a] border-black/15 hover:bg-[#f1efe8]' },
+  { id: 'NCm', label: 'NC Menor', activo: 'bg-[#d9772b] text-white border-[#d9772b]', reposo: 'text-[#a85a1c] border-[#d9772b]/40 hover:bg-[#fdf0e3]' },
+  { id: 'NCM', label: 'NC Mayor', activo: 'bg-[#c4453a] text-white border-[#c4453a]', reposo: 'text-[#a13c33] border-[#c4453a]/40 hover:bg-[#fdecea]' },
+  { id: 'NCC', label: 'Crítica', activo: 'bg-[#7a1f1f] text-white border-[#7a1f1f]', reposo: 'text-[#7a1f1f] border-[#7a1f1f]/40 hover:bg-[#fbe6e6]' },
 ] as const
 
 const NORMA_ESTILO: Record<string, string> = {
@@ -33,7 +31,7 @@ const NORMA_ESTILO: Record<string, string> = {
   AMBAS: 'bg-[#eaf5f0] text-[#3d6b53]',
 }
 
-const REQUIERE_COMENTARIO = new Set(['O', 'OM', 'NCm', 'NCM', 'NCC'])
+const REQUIERE_COMENTARIO = new Set(['O', 'NCm', 'NCM', 'NCC'])
 
 const inputCls =
   'w-full rounded-md border border-black/10 px-2.5 py-1.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30 disabled:bg-black/[0.02]'
@@ -163,8 +161,10 @@ export default function ChecklistFSG57({
   hallazgos: inicial,
   puedeEditar,
   bloqueado,
+  nave,
 }: {
   auditoriaId: string
+  nave?: string | null
   hallazgos: Hallazgo[]
   puedeEditar: boolean
   bloqueado: boolean
@@ -184,7 +184,7 @@ export default function ChecklistFSG57({
 
   const [actual, setActual] = useState(procesos[0] ?? '')
 
-  const visibles = (h: Hallazgo) => normaFiltro === 'TODAS' || h.norma_clausula === normaFiltro
+  const visibles = (h: Hallazgo) => normaFiltro === 'TODAS' || h.norma_clausula === normaFiltro || h.norma_clausula === 'AMBAS'
   const total = hallazgos.filter(visibles).length
   const respondidas = hallazgos.filter((h) => visibles(h) && h.resultado).length
   const porcentaje = total ? Math.round((respondidas / total) * 100) : 0
@@ -220,7 +220,7 @@ export default function ChecklistFSG57({
       <div className="rounded-xl border border-black/5 bg-white p-4">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-[13px] font-medium text-by-gray-dark">
-            Lista de verificación FSG-57 — Nave 1
+            Lista de verificación FSG-57{nave ? ` — ${nave}` : ''}
             <span className="ml-2 text-[11px] font-normal text-by-gray-light">
               {respondidas} de {total} respondidas ({porcentaje}%)
             </span>

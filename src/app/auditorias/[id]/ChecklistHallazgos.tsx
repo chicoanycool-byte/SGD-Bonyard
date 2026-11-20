@@ -47,27 +47,27 @@ const OPCIONES_NC: Record<string, { value: string; label: string }[]> = {
   ISO: [
     { value: 'observacion', label: 'Observación' },
     { value: 'oportunidad_mejora', label: 'Oportunidad de mejora' },
-    { value: 'nc_menor', label: 'No conformidad menor' },
-    { value: 'nc_mayor', label: 'No conformidad mayor' },
+    { value: 'menor', label: 'No conformidad menor' },
+    { value: 'mayor', label: 'No conformidad mayor' },
   ],
   SQF: [
-    { value: 'nc_menor', label: 'NC Menor (Minor)' },
-    { value: 'nc_mayor', label: 'NC Mayor (Major)' },
-    { value: 'nc_critica', label: 'NC Crítica (Critical)' },
+    { value: 'menor', label: 'NC Menor (Minor)' },
+    { value: 'mayor', label: 'NC Mayor (Major)' },
+    { value: 'critica', label: 'NC Crítica (Critical)' },
   ],
   AMBAS: [
     { value: 'observacion', label: 'Observación (ISO)' },
     { value: 'oportunidad_mejora', label: 'Oportunidad de mejora (ISO)' },
-    { value: 'nc_menor', label: 'No conformidad menor' },
-    { value: 'nc_mayor', label: 'No conformidad mayor' },
-    { value: 'nc_critica', label: 'NC Crítica (SQF)' },
+    { value: 'menor', label: 'No conformidad menor' },
+    { value: 'mayor', label: 'No conformidad mayor' },
+    { value: 'critica', label: 'NC Crítica (SQF)' },
   ],
   DEFAULT: [
     { value: 'observacion', label: 'Observación (ISO)' },
     { value: 'oportunidad_mejora', label: 'Oportunidad de mejora (ISO)' },
-    { value: 'nc_menor', label: 'No conformidad menor' },
-    { value: 'nc_mayor', label: 'No conformidad mayor' },
-    { value: 'nc_critica', label: 'NC Crítica (SQF)' },
+    { value: 'menor', label: 'No conformidad menor' },
+    { value: 'mayor', label: 'No conformidad mayor' },
+    { value: 'critica', label: 'NC Crítica (SQF)' },
   ],
 }
 
@@ -343,7 +343,7 @@ export default function ChecklistHallazgos({
           </select>
           <select
             name="tipo_nc"
-            defaultValue="nc_menor"
+            defaultValue="menor"
             className="h-8 rounded-md border border-black/10 px-2.5 text-[12.5px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           >
             {OPCIONES_NC.DEFAULT.map((op) => (
