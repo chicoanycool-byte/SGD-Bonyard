@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { sumarMeses } from '@/lib/capacitacion'
 
-export type EstadoCapAccion = { error?: string; ok?: boolean }
+export type EstadoCapAccion = { error?: string; ok?: boolean; mensaje?: string }
 const texto = (fd: FormData, k: string) => String(fd.get(k) ?? '').trim()
 
 async function soloCoordinador() {
@@ -44,7 +44,13 @@ export async function registrarCapacitacion(_p: EstadoCapAccion, fd: FormData): 
   )
   if (error) return { error: 'No se pudo guardar. ' + error.message }
   revalidatePath('/recursos-humanos/capacitacion')
-  return { ok: true }
+  const quienes = usuarioIds.length === 1 ? '1 persona' : `${usuarioIds.length} personas`
+  return {
+    ok: true,
+    mensaje: vigente
+      ? `Listo, quedó registrada para ${quienes}. Vence el ${new Date(vigente + 'T12:00:00').toLocaleDateString('es-MX')} y te avisaremos 30 días antes.`
+      : `Listo, quedó registrada para ${quienes}. Este curso no tiene vencimiento.`,
+  }
 }
 
 export async function eliminarRegistroCapacitacion(id: string) {

@@ -24,7 +24,7 @@ function FilaCurso({ c }: { c: Curso }) {
           value={vig}
           onChange={(e) => setVig(e.target.value.replace(/\D/g, ''))}
           onBlur={() => guardar(vig, activo)}
-          placeholder="sin vencimiento"
+          placeholder="no vence"
           className={campo + ' h-7 w-28'}
           disabled={pendiente}
         />
@@ -68,6 +68,7 @@ export default function ConfiguracionClient({ cursos, puestos, requisitos }: { c
   useEffect(() => {
     if (estado.ok) ref.current?.reset()
   }, [estado.ok])
+  const [puestoSel, setPuestoSel] = useState('')
   const set = new Set(requisitos)
   const activos = cursos.filter((c) => c.activo)
 
@@ -80,7 +81,7 @@ export default function ConfiguracionClient({ cursos, puestos, requisitos }: { c
               <th className="px-3 py-2">Código</th>
               <th className="px-3 py-2">Curso</th>
               <th className="px-3 py-2">Norma y cláusula</th>
-              <th className="px-3 py-2">Vigencia (meses)</th>
+              <th className="px-3 py-2">Vence a los (meses)</th>
               <th className="px-3 py-2" />
             </tr>
           </thead>
@@ -110,33 +111,25 @@ export default function ConfiguracionClient({ cursos, puestos, requisitos }: { c
         </form>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-black/5 bg-white">
-        <p className="px-3 pt-3 text-[13px] font-medium text-by-gray-dark">¿Qué curso requiere cada puesto?</p>
-        <table className="w-full text-[12px]">
-          <thead>
-            <tr className="border-b border-black/5 text-left text-[11px] text-by-gray">
-              <th className="px-3 py-2">Puesto</th>
-              {activos.map((c) => (
-                <th key={c.id} className="px-2 py-2 text-center" title={c.nombre}>{c.codigo}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {puestos.map((p) => (
-              <tr key={p.id} className="border-b border-black/5 last:border-0">
-                <td className="px-3 py-1.5">
-                  {p.nombre}
-                  <span className="block text-[10.5px] text-by-gray">{p.area}</span>
-                </td>
-                {activos.map((c) => (
-                  <td key={c.id} className="px-2 py-1.5 text-center">
-                    <CeldaReq puestoId={p.id} cursoId={c.id} inicial={set.has(`${p.id}|${c.id}`)} />
-                  </td>
-                ))}
-              </tr>
+      <div className="rounded-xl border border-black/5 bg-white p-4">
+        <p className="text-[13px] font-medium text-by-gray-dark">¿Qué cursos necesita cada puesto?</p>
+        <p className="mb-3 text-[11.5px] text-by-gray">Elige un puesto y marca los cursos que debe tener quien lo ocupe. Se guarda al marcar.</p>
+        <select value={puestoSel} onChange={(e) => setPuestoSel(e.target.value)} className={campo + ' mb-3 h-8 w-full max-w-sm'}>
+          <option value="">Elige un puesto</option>
+          {puestos.map((p) => <option key={p.id} value={p.id}>{p.nombre} ({p.area})</option>)}
+        </select>
+        {puestoSel && (
+          <ul className="grid grid-cols-1 gap-1 md:grid-cols-2" key={puestoSel}>
+            {activos.map((c) => (
+              <li key={c.id}>
+                <label className="flex items-start gap-2 rounded-md px-2 py-1.5 text-[12.5px] hover:bg-black/[0.03]">
+                  <span className="mt-0.5"><CeldaReq puestoId={puestoSel} cursoId={c.id} inicial={set.has(`${puestoSel}|${c.id}`)} /></span>
+                  <span><span className="font-medium">{c.codigo}</span> {c.nombre}</span>
+                </label>
+              </li>
             ))}
-          </tbody>
-        </table>
+          </ul>
+        )}
       </div>
     </>
   )
