@@ -133,6 +133,7 @@ const NAV: NavItem[] = [
       { href: '/inocuidad-alimentaria/vidrio-plastico', label: 'Vidrio y Plástico Quebradizo' },
       { href: '/inocuidad-alimentaria/manejo-residuos', label: 'Manejo de Residuos' },
       { href: '/inocuidad-alimentaria/cultura', label: 'Cultura de Inocuidad' },
+      { href: '/inocuidad-alimentaria/monitoreo-ambiental', label: 'Monitoreo ambiental' },
     ],
   },
   {

@@ -63,6 +63,10 @@ export const AYUDA_PANTALLAS: Record<string, AyudaPantalla> = {
     sirve: 'Cómo va el mantenimiento: cuánto se cumple del programa y qué falla más.',
     pasos: ['Elige el periodo.', 'Revisa los equipos con más fallas.'],
   },
+  '/inocuidad-alimentaria/monitoreo-ambiental': {
+    sirve: 'Llevar el control de las muestras de superficies, aire o agua para comprobar que las áreas están limpias. Las zonas de más riesgo se muestrean más seguido.',
+    pasos: ['Entra a “Qué toca muestrear” para ver los puntos pendientes.', 'Cuando llegue el resultado del laboratorio, pulsa “Registrar resultado”.', 'Si queda fuera de límite, el sistema abre solo una acción correctiva.', 'Ajusta riesgo y frecuencia en “Puntos de muestreo”.'],
+  },
   '/inocuidad-alimentaria/cultura': {
     sirve: 'Cómo hacemos que la inocuidad sea parte del día a día de todos, con objetivos y encuestas.',
     pasos: ['Revisa los objetivos y su avance.', 'Actualiza el avance cuando haya algo nuevo.', 'Registra la encuesta cuando se aplique.'],
