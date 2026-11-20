@@ -32,6 +32,7 @@ const NAV: NavItem[] = [
       { href: '/documentos-alta', label: 'Alta o actualización', soloCoordinador: true },
     ],
   },
+  { href: '/gestion-cambios', label: 'Gestión de cambios' },
   {
     label: 'Dirección',
     children: [
