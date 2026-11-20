@@ -49,6 +49,7 @@ type DashboardHomeProps = {
   };
   misAcciones: { id: string; titulo: string; vencida: boolean; fecha: string }[];
   misAuditorias: { id: string; titulo: string; fecha: string }[];
+  misCapacitaciones: { id: string; titulo: string; estado: string; urgente: boolean }[];
   tendenciaPNC: { label: string; value: number }[];
   procesos: { label: string; percent: number }[];
   resumen: {
@@ -75,12 +76,13 @@ export default function DashboardHome({
   kpis,
   misAcciones,
   misAuditorias,
+  misCapacitaciones,
   tendenciaPNC,
   procesos,
   resumen,
 }: DashboardHomeProps) {
   const vistaSimple = ROLES_VISTA_SIMPLE.includes(rol);
-  const hayMiDia = misAcciones.length > 0 || misAuditorias.length > 0;
+  const hayMiDia = misAcciones.length > 0 || misAuditorias.length > 0 || misCapacitaciones.length > 0;
 
   return (
     <div className="space-y-5">
@@ -104,6 +106,21 @@ export default function DashboardHome({
                         <span className={"shrink-0 text-xs font-medium " + (a.vencida ? "text-status-danger" : "text-brand-gray")}>
                           {a.vencida ? "Vencida · " : ""}{a.fecha}
                         </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {misCapacitaciones.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-brand-gray">Mis capacitaciones pendientes</p>
+                <ul className="divide-y divide-border-subtle">
+                  {misCapacitaciones.map((c) => (
+                    <li key={c.id}>
+                      <Link href="/recursos-humanos/capacitacion" className="flex items-center gap-3 py-2 text-sm hover:underline">
+                        <span className="min-w-0 flex-1 truncate text-brand-900">{c.titulo}</span>
+                        <span className={"shrink-0 text-xs font-medium " + (c.urgente ? "text-status-danger" : "text-brand-gray")}>{c.estado}</span>
                       </Link>
                     </li>
                   ))}

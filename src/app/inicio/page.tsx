@@ -2,6 +2,7 @@ import AppShell from "@/components/AppShell";
 import DashboardHome from "@/components/dashboard/DashboardHome";
 import { requerirUsuario } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { estadoCapacitacion, ESTADO_CAP } from "@/lib/capacitacion";
 
 function mesesAtras(n: number) {
   const d = new Date();
@@ -115,6 +116,25 @@ export default async function InicioPage() {
       .limit(5),
   ]);
 
+  // Capacitaciones propias que requieren atención (requisitos del puesto vencidos, por vencer o sin registro)
+  const { data: yo } = await supabase.from("usuarios").select("puesto_id").eq("id", quien.id).single();
+  const [{ data: reqPuesto }, { data: cursosCap }, { data: regsCap }] = await Promise.all([
+    supabase.from("capacitacion_requisitos").select("curso_id").eq("puesto_id", (yo?.puesto_id as string) ?? "00000000-0000-0000-0000-000000000000"),
+    supabase.from("capacitacion_cursos").select("id, codigo, nombre").eq("activo", true),
+    supabase.from("capacitacion_registros").select("curso_id, fecha, vigente_hasta").eq("usuario_id", quien.id).order("fecha", { ascending: false }),
+  ]);
+  const ultimoCap = new Map<string, string | null>();
+  for (const r of regsCap ?? []) if (!ultimoCap.has(r.curso_id as string)) ultimoCap.set(r.curso_id as string, (r.vigente_hasta as string | null) ?? null);
+  const misCapacitaciones = (reqPuesto ?? [])
+    .map((r) => {
+      const c = (cursosCap ?? []).find((x) => x.id === r.curso_id);
+      if (!c) return null;
+      const tiene = ultimoCap.has(c.id as string);
+      const estado = estadoCapacitacion(ultimoCap.get(c.id as string), tiene, hoy);
+      return { id: c.id as string, titulo: `${c.codigo} ${c.nombre}`, estado: ESTADO_CAP[estado].label, urgente: estado === "vencido" || estado === "pendiente", ok: estado === "vigente" || estado === "sin_vencimiento" };
+    })
+    .filter((x): x is { id: string; titulo: string; estado: string; urgente: boolean; ok: boolean } => !!x && !x.ok);
+
   const porcentaje = (parte: number, total: number) =>
     total > 0 ? Math.round((parte / total) * 100) : 0;
 
@@ -176,6 +196,7 @@ export default async function InicioPage() {
         ? new Date(a.fecha_compromiso as string + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short" })
         : "Sin fecha",
     })),
+    misCapacitaciones,
     misAuditorias: (misAuditorias ?? []).map((a) => ({
       id: a.id as string,
       titulo: `Auditoría ${a.nave ?? ""}`.trim(),

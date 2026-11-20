@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
     children: [
       { href: '/recursos-humanos/descriptivo', label: 'Ver descriptivo' },
       { href: '/recursos-humanos/organigrama', label: 'Organigrama' },
+      { href: '/recursos-humanos/capacitacion', label: 'Matriz de capacitación' },
       { href: '/recursos-humanos/cargar', label: 'Cargar documentos', soloCoordinador: true },
     ],
   },
