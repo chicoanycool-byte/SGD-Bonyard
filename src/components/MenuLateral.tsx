@@ -24,6 +24,9 @@ import {
   UserCog,
   Activity,
   Bot,
+  BarChart3,
+  Settings,
+  Salad,
   ChevronDown,
   LogOut,
   type LucideIcon,
@@ -55,6 +58,9 @@ const ICONOS: Record<string, LucideIcon> = {
   '/usuarios': UserCog,
   '/metricas-acceso': Activity,
   '/asesor': Bot,
+  Métricas: BarChart3,
+  Mantenimiento: Settings,
+  'Inocuidad Alimentaria': Salad,
 }
 
 export default function MenuLateral({ items, activo }: { items: Item[]; activo: string }) {
