@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
+import { procesoPorCodigo } from '@/lib/procesoDocumento'
 
 const ROLES_GESTION = ['coordinador_sgi']
 
@@ -62,7 +63,7 @@ export async function subirDocumento(
       .update({
         nombre,
         version: version || null,
-        proceso: proceso || null,
+        proceso: proceso || procesoPorCodigo(codigo),
         storage_path: rutaStorage,
         tipo_archivo: archivo.type || extension,
         tamano_kb: Math.round(archivo.size / 1024),
@@ -80,7 +81,7 @@ export async function subirDocumento(
       codigo,
       nombre,
       version: version || null,
-      proceso: proceso || null,
+      proceso: proceso || procesoPorCodigo(codigo),
       storage_path: rutaStorage,
       tipo_archivo: archivo.type || extension,
       tamano_kb: Math.round(archivo.size / 1024),

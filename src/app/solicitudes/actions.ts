@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { enviarCorreo } from '@/lib/email'
+import { procesoPorCodigo } from '@/lib/procesoDocumento'
 
 export type EstadoSolicitud = {
   error?: string
@@ -244,6 +245,7 @@ export async function resolverSolicitud(
       await supabase.from('documentos').insert({
         codigo: codigoFinal,
         nombre: solicitud.nombre,
+        proceso: procesoPorCodigo(codigoFinal),
         version: '1',
         storage_path: rutaDocumentos,
         tipo_archivo: solicitud.tipo_archivo,

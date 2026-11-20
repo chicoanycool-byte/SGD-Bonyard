@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import BotonesAtrasActualizar from './BotonesAtrasActualizar'
 import MenuLateral from './MenuLateral'
 import { ROL_LABEL } from '@/lib/permisos'
+import FiltrosTablas from './FiltrosTablas'
 
 type SubItem = { href: string; label: string; soloCoordinador?: boolean; soloPuestos?: string[] }
 type NavItem =
@@ -273,7 +274,7 @@ export default async function AppShell({
           <div className="mb-3">
             <BotonesAtrasActualizar />
           </div>
-          {children}
+          <FiltrosTablas>{children}</FiltrosTablas>
         </main>
       </div>
     </div>
