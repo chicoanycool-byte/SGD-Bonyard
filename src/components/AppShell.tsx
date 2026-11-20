@@ -158,6 +158,7 @@ const NAV: NavItem[] = [
       { href: '/recorridos-bpa/dashboard', label: 'Recorridos BPA' },
       { href: '/verificacion-sgi/dashboard', label: 'Verificación del SGI', soloCoordinador: true },
       { href: '/pnc/dashboard', label: 'Producto no conforme' },
+      { href: '/gestion-cambios/dashboard', label: 'Gestión de cambios' },
       { href: '/proveedores/dashboard', label: 'Proveedores', soloCoordinador: true },
       { href: '/matriz-legal/indicadores', label: 'Requisitos legales', soloCoordinador: true },
       {
