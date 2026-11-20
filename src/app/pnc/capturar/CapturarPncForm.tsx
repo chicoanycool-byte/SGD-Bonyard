@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from 'react'
 import { crearPNC, type EstadoPNC } from '../actions'
+import { AvisoError, BotonPrincipal, Campo, FormaTarjeta, Seccion, inputCls, textareaCls } from '@/components/ui/forma'
 
 const inicial: EstadoPNC = {}
 
@@ -22,149 +23,87 @@ export default function CapturarPncForm() {
     }
   }
 
-  const inputCls =
-    'h-9 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30'
-
   return (
-    <form action={formAction} className="rounded-xl border border-black/5 bg-white p-4">
-      <p className="mb-3 text-[13px] font-medium text-by-gray-dark">Capturar PNC</p>
+    <FormaTarjeta
+      titulo="Reportar producto o equipo no conforme"
+      intro="Usa esto cuando algo no cumple: producto dañado o fuera de especificación, o un equipo que falló. Ve en orden, el folio y la fecha se ponen solos."
+    >
+      <form action={formAction} className="flex flex-col gap-4">
+        <input type="hidden" name="tipo" value={tipo} />
 
-      <div className="mb-4 grid grid-cols-3 gap-3">
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Folio</label>
-          <input value="Se asigna automático al guardar" disabled className={inputCls + ' bg-black/5 text-by-gray-light'} />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Fecha</label>
-          <input value={hoy} disabled className={inputCls + ' bg-black/5 text-by-gray-light'} />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Tipo de PNC</label>
-          <select
-            name="tipo"
-            required
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            className={inputCls}
-          >
-            <option value="" disabled>Selecciona</option>
-            <option value="producto">Producto</option>
-            <option value="equipo">Equipo</option>
-          </select>
-        </div>
-      </div>
+        <section className="rounded-xl border border-black/5 bg-[#fafbfb] p-4">
+          <p className="mb-3 text-[14px] font-medium text-by-gray-dark">1. ¿Qué es lo que no está bien?</p>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {([['producto', 'Un producto', 'Mercancía dañada, mal identificada o fuera de especificación'], ['equipo', 'Un equipo', 'Montacargas, báscula, andén u otro equipo que falló']] as const).map(([v, t, d]) => (
+              <button
+                type="button"
+                key={v}
+                onClick={() => setTipo(v)}
+                className={'rounded-xl border-2 px-4 py-3 text-left ' + (tipo === v ? 'border-by-primary bg-by-primary/5' : 'border-black/10 hover:border-by-accent')}
+              >
+                <span className="block text-[14px] font-medium text-by-gray-dark">{t}</span>
+                <span className="block text-[12.5px] text-by-gray">{d}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-[12px] text-by-gray">Folio: se asigna al guardar. Fecha de hoy: {hoy}.</p>
+        </section>
 
-      {tipo === 'producto' && (
-        <div className="mb-4 grid grid-cols-3 gap-3">
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Cliente</label>
-            <input name="cliente" required className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Proyecto</label>
-            <input name="proyecto" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Lote</label>
-            <input name="lote" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Código de producto</label>
-            <input name="codigo_producto" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Cantidad</label>
-            <input name="cantidad" type="number" step="any" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Número de tarimas</label>
-            <input name="numero_tarimas" type="number" step="any" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Nombre del producto</label>
-            <input name="nombre_producto" required className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Ubicación del PNC</label>
-            <input name="ubicacion" className={inputCls} />
-          </div>
-          <div className="col-span-3">
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Descripción de la no conformidad</label>
-            <textarea name="descripcion_nc" required rows={3} className="w-full rounded-md border border-black/10 px-2.5 py-1.5 text-[13px]" />
-          </div>
-          <div className="col-span-3">
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Foto del daño</label>
-            <input
-              ref={inputFotoRef}
-              name="foto"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={onFotoChange}
-              className="text-[13px]"
-            />
-            {previewFoto && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewFoto} alt="Vista previa" className="mt-2 h-32 w-32 rounded-md object-cover" />
-            )}
-          </div>
-        </div>
-      )}
+        {tipo === 'producto' && (
+          <>
+            <Seccion numero={2} titulo="¿De qué producto se trata?" ayuda="Lo que alcances a llenar; solo cliente y nombre son obligatorios.">
+              <Campo label="Cliente"><input name="cliente" required className={inputCls} /></Campo>
+              <Campo label="Nombre del producto"><input name="nombre_producto" required className={inputCls} /></Campo>
+              <Campo label="Código del producto" opcional><input name="codigo_producto" className={inputCls} /></Campo>
+              <Campo label="Lote" opcional><input name="lote" className={inputCls} /></Campo>
+              <Campo label="Proyecto" opcional><input name="proyecto" className={inputCls} /></Campo>
+              <Campo label="¿Dónde está ahora?" opcional ayuda="Ubicación o rack donde quedó el producto."><input name="ubicacion" className={inputCls} /></Campo>
+              <Campo label="Cantidad afectada" opcional><input name="cantidad" type="number" step="any" className={inputCls} /></Campo>
+              <Campo label="Número de tarimas" opcional><input name="numero_tarimas" type="number" step="any" className={inputCls} /></Campo>
+            </Seccion>
+            <Seccion numero={3} titulo="¿Qué le pasó?" ayuda="Describe el problema y, si puedes, toma una foto.">
+              <Campo ancho label="Describe lo que está mal"><textarea name="descripcion_nc" required rows={3} className={textareaCls} /></Campo>
+              <Campo ancho label="Foto del daño" opcional>
+                <input ref={inputFotoRef} name="foto" type="file" accept="image/*" capture="environment" onChange={onFotoChange} className="text-[13px]" />
+                {previewFoto && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={previewFoto} alt="Vista previa" className="mt-2 h-32 w-32 rounded-lg object-cover" />
+                )}
+              </Campo>
+            </Seccion>
+          </>
+        )}
 
-      {tipo === 'equipo' && (
-        <div className="mb-4 grid grid-cols-3 gap-3">
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Tipo de equipo</label>
-            <input name="tipo_equipo" required className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Tipo de falla</label>
-            <input name="tipo_falla" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Ubicación del equipo</label>
-            <input name="ubicacion_equipo" className={inputCls} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Nombre del proveedor</label>
-            <input name="nombre_proveedor" className={inputCls} />
-          </div>
-          <div className="col-span-3">
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Descripción de la falla</label>
-            <textarea name="descripcion_falla" required rows={3} className="w-full rounded-md border border-black/10 px-2.5 py-1.5 text-[13px]" />
-          </div>
-          <div className="col-span-3">
-            <label className="mb-1 block text-[11px] text-by-gray-dark">Foto (opcional)</label>
-            <input
-              ref={inputFotoRef}
-              name="foto"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={onFotoChange}
-              className="text-[13px]"
-            />
-            {previewFoto && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={previewFoto} alt="Vista previa" className="mt-2 h-32 w-32 rounded-md object-cover" />
-            )}
-          </div>
-        </div>
-      )}
+        {tipo === 'equipo' && (
+          <>
+            <Seccion numero={2} titulo="¿Qué equipo es?" ayuda="Solo el tipo de equipo es obligatorio.">
+              <Campo label="Equipo" ayuda="Ej. montacargas, báscula, andén."><input name="tipo_equipo" required className={inputCls} /></Campo>
+              <Campo label="¿Dónde está?" opcional><input name="ubicacion_equipo" className={inputCls} /></Campo>
+              <Campo label="Tipo de falla" opcional><input name="tipo_falla" className={inputCls} /></Campo>
+              <Campo label="Proveedor del equipo" opcional><input name="nombre_proveedor" className={inputCls} /></Campo>
+            </Seccion>
+            <Seccion numero={3} titulo="¿Qué falló?" ayuda="Describe la falla y, si puedes, toma una foto.">
+              <Campo ancho label="Describe la falla"><textarea name="descripcion_falla" required rows={3} className={textareaCls} /></Campo>
+              <Campo ancho label="Foto" opcional>
+                <input ref={inputFotoRef} name="foto" type="file" accept="image/*" capture="environment" onChange={onFotoChange} className="text-[13px]" />
+                {previewFoto && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={previewFoto} alt="Vista previa" className="mt-2 h-32 w-32 rounded-lg object-cover" />
+                )}
+              </Campo>
+            </Seccion>
+          </>
+        )}
 
-      {estado.error && (
-        <p className="mb-3 rounded-md bg-red-50 px-3 py-2 text-[12px] text-red-700">{estado.error}</p>
-      )}
+        {estado.error && <AvisoError>{estado.error}</AvisoError>}
 
-      {tipo && (
-        <button
-          type="submit"
-          disabled={pending}
-          className="h-9 w-fit rounded-md bg-by-primary px-5 text-[13px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
-        >
-          {pending ? 'Guardando…' : 'Guardar y enviar'}
-        </button>
-      )}
-    </form>
+        {tipo && (
+          <div>
+            <BotonPrincipal pendiente={pending}>Guardar y avisar</BotonPrincipal>
+            <p className="mt-1.5 text-[12px] text-by-gray">Al guardar se le avisa al responsable y queda en el registro de producto no conforme.</p>
+          </div>
+        )}
+      </form>
+    </FormaTarjeta>
   )
 }

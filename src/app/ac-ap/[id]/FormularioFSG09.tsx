@@ -113,13 +113,12 @@ export default function FormularioFSG09({
         }
         className="rounded-xl border border-black/5 bg-white p-4"
       >
-        <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
-          FSG-09 · Definición del problema y equipo de mejora
-        </p>
+        <p className="text-[14px] font-medium text-by-gray-dark">Paso 1 de 4 · ¿Cuál es el problema y quién lo va a resolver?</p>
+        <p className="mb-3 text-[12.5px] text-by-gray">Escribe qué pasó, dónde y cuándo, con datos concretos. Después anota quién lidera la solución y quién ayuda. (FSG-09 Registro de acción correctiva)</p>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <label className="mb-1 block text-[11px] text-by-gray-dark">
-              Definición del problema
+            <label className="mb-1 block text-[12.5px] font-medium text-by-gray-dark">
+              ¿Cuál es el problema?
             </label>
             <textarea
               name="definicion_problema"
@@ -130,8 +129,8 @@ export default function FormularioFSG09({
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">
-              Líder del equipo
+            <label className="mb-1 block text-[12.5px] font-medium text-by-gray-dark">
+              ¿Quién lidera la solución?
             </label>
             <input
               name="equipo_lider"
@@ -141,8 +140,8 @@ export default function FormularioFSG09({
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] text-by-gray-dark">
-              Miembros del equipo
+            <label className="mb-1 block text-[12.5px] font-medium text-by-gray-dark">
+              ¿Quién más ayuda?
             </label>
             <input
               name="equipo_miembros"
@@ -158,22 +157,19 @@ export default function FormularioFSG09({
             disabled={pending}
             className="mt-3 h-8 rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white disabled:opacity-60"
           >
-            Guardar
+            Guardar este paso
           </button>
         )}
         {guardado === 'definicion' && (
-          <span className="ml-3 text-[12px] text-[#3d6b53]">✓ Guardado</span>
+          <span className="ml-3 text-[12px] text-[#3d6b53]">✓ Paso guardado</span>
         )}
       </form>
 
       {/* Sección 2: Medidas de contención / corrección */}
       <div className="rounded-xl border border-black/5 bg-white p-4">
-        <p className="mb-1 text-[13px] font-medium text-by-gray-dark">
-          Medidas de contención / corrección
-        </p>
-        <p className="mb-3 text-[10.5px] text-by-gray-light">
-          El "Seguimiento y cierre" solo lo llena el Coordinador SGI.
-        </p>
+        <p className="text-[14px] font-medium text-by-gray-dark">Paso 2 de 4 · ¿Qué se hizo de inmediato?</p>
+        <p className="mb-1 text-[12.5px] text-by-gray">Medidas rápidas para detener el problema y corregir lo que ya salió mal. Todavía no es la solución definitiva.</p>
+        <p className="mb-3 text-[12px] text-by-gray">El seguimiento y el cierre de cada medida los llena el Coordinador del SGI.</p>
         <div className="flex flex-col gap-2">
           {medidas.map((m, i) => (
             <div key={i} className="grid grid-cols-4 gap-2">
@@ -247,10 +243,10 @@ export default function FormularioFSG09({
               }
               className="h-8 rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white disabled:opacity-60"
             >
-              Guardar
+              Guardar este paso
             </button>
             {guardado === 'medidas' && (
-              <span className="text-[12px] text-[#3d6b53]">✓ Guardado</span>
+              <span className="text-[12px] text-[#3d6b53]">✓ Paso guardado</span>
             )}
           </div>
         )}
@@ -258,9 +254,8 @@ export default function FormularioFSG09({
 
       {/* Sección 3: Análisis causa-efecto */}
       <div className="rounded-xl border border-black/5 bg-white p-4">
-        <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
-          Análisis causa - efecto (Ishikawa)
-        </p>
+        <p className="text-[14px] font-medium text-by-gray-dark">Paso 3 de 4 · ¿Por qué pasó?</p>
+        <p className="mb-3 text-[12.5px] text-by-gray">Revisa cada categoría y anota qué pudo causar el problema. Marca qué tanto influyó (impacto). Al final escribe la causa principal, la de impacto alto.</p>
         <div className="grid grid-cols-2 gap-3">
           {CATEGORIAS_CAUSA.map(({ clave, label }) => (
             <div key={clave} className="rounded-md border border-black/5 p-2">
@@ -294,8 +289,8 @@ export default function FormularioFSG09({
           ))}
         </div>
         <div className="mt-3">
-          <label className="mb-1 block text-[11px] text-by-gray-dark">
-            Causas raíz (causas con impacto alto)
+          <label className="mb-1 block text-[12.5px] font-medium text-by-gray-dark">
+            Causa raíz: la o las causas de impacto alto
           </label>
           <textarea
             disabled={bloqueado}
@@ -317,10 +312,10 @@ export default function FormularioFSG09({
               }
               className="h-8 rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white disabled:opacity-60"
             >
-              Guardar
+              Guardar este paso
             </button>
             {guardado === 'causas' && (
-              <span className="text-[12px] text-[#3d6b53]">✓ Guardado</span>
+              <span className="text-[12px] text-[#3d6b53]">✓ Paso guardado</span>
             )}
           </div>
         )}
@@ -328,12 +323,9 @@ export default function FormularioFSG09({
 
       {/* Sección 4: Plan de trabajo */}
       <div className="rounded-xl border border-black/5 bg-white p-4">
-        <p className="mb-1 text-[13px] font-medium text-by-gray-dark">
-          Plan de trabajo (acción correctiva permanente)
-        </p>
-        <p className="mb-3 text-[10.5px] text-by-gray-light">
-          "Seguimiento" y "Verificación de eficacia" solo los llena el Coordinador SGI.
-        </p>
+        <p className="text-[14px] font-medium text-by-gray-dark">Paso 4 de 4 · ¿Qué se hará para que no vuelva a pasar?</p>
+        <p className="mb-1 text-[12.5px] text-by-gray">Actividades que atacan la causa raíz: qué se hará, quién y para cuándo.</p>
+        <p className="mb-3 text-[12px] text-by-gray">El seguimiento y la verificación de que funcionó los llena el Coordinador del SGI.</p>
         <div className="flex flex-col gap-2">
           {plan.map((p, i) => (
             <div key={i} className="grid grid-cols-3 gap-2 rounded-md border border-black/5 p-2">
@@ -443,10 +435,10 @@ export default function FormularioFSG09({
               }
               className="h-8 rounded-md bg-by-primary px-4 text-[12.5px] font-medium text-white disabled:opacity-60"
             >
-              Guardar
+              Guardar este paso
             </button>
             {guardado === 'plan' && (
-              <span className="text-[12px] text-[#3d6b53]">✓ Guardado</span>
+              <span className="text-[12px] text-[#3d6b53]">✓ Paso guardado</span>
             )}
           </div>
         )}

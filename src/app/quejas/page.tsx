@@ -4,6 +4,8 @@ import { requerirUsuario } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import RegistrarQuejaForm from './RegistrarQuejaForm'
 import QuejasTabla from './QuejasTabla'
+import { ResumenFrase } from '@/components/ui/forma'
+import { hoyMX } from '@/lib/capacitacion'
 
 const ROLES_GESTION = ['coordinador_sgi']
 
@@ -46,6 +48,10 @@ export default async function QuejasPage() {
       (q.responsable as unknown as { nombre: string } | null)?.nombre ?? null,
   }))
 
+  const hoy = hoyMX()
+  const abiertas = quejas.filter((q) => q.estatus !== 'cerrada' && q.estatus !== 'no_procede')
+  const vencidas = abiertas.filter((q) => q.fecha_limite && q.fecha_limite < hoy).length
+
   return (
     <AppShell
       nombre={quien.nombre}
@@ -55,7 +61,7 @@ export default async function QuejasPage() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[14px] font-medium text-by-gray-dark">Quejas</p>
+          <p className="text-[16px] font-medium text-by-gray-dark">Quejas de clientes</p>
           <div className="flex flex-wrap gap-2">
             <Link
               href="/quejas/dashboard"
@@ -77,6 +83,18 @@ export default async function QuejasPage() {
             </a>
           </div>
         </div>
+
+        <ResumenFrase
+          frase={
+            abiertas.length === 0 ? (
+              <>No hay quejas abiertas. <span className="font-semibold text-emerald-700">Todo al corriente.</span></>
+            ) : (
+              <>Hay <span className="font-semibold">{abiertas.length}</span> {abiertas.length === 1 ? 'queja abierta' : 'quejas abiertas'}
+              {vencidas > 0 ? <>, <span className="font-semibold text-red-700">{vencidas} {vencidas === 1 ? 'pasó' : 'pasaron'} su fecha límite</span></> : ', ninguna fuera de tiempo'}.</>
+            )
+          }
+          detalle="Una queja se cierra cuando el responsable la atiende y el Coordinador del SGI valida la evidencia."
+        />
 
         {puedeGestionar && <RegistrarQuejaForm usuarios={usuarios ?? []} />}
         <QuejasTabla

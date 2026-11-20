@@ -8,26 +8,27 @@ export default async function PncPage() {
   return (
     <AppShell nombre={quien.nombre} rol={quien.rol} usuarioId={quien.id} activo="/pnc">
       <div className="flex flex-col gap-4">
-        <p className="text-[14px] font-medium text-by-gray-dark">
-          Producto y Equipo No Conforme
-        </p>
-        <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-[16px] font-medium text-by-gray-dark">Producto y equipo no conforme</p>
+          <p className="text-[12.5px] text-by-gray">Aquí reportas cuando un producto o un equipo no cumple, y consultas lo ya reportado.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Link
             href="/pnc/capturar"
             className="rounded-xl border border-black/5 bg-white p-6 text-center transition hover:border-by-accent hover:shadow-sm"
           >
-            <p className="mb-1 text-[15px] font-medium text-by-gray-dark">Capturar PNC</p>
+            <p className="mb-1 text-[15px] font-medium text-by-gray-dark">Reportar algo no conforme</p>
             <p className="text-[12px] text-by-gray-light">
-              Registrar un nuevo producto o equipo no conforme
+              Producto dañado o equipo que falló. Te guía paso a paso.
             </p>
           </Link>
           <Link
             href="/pnc/registro"
             className="rounded-xl border border-black/5 bg-white p-6 text-center transition hover:border-by-accent hover:shadow-sm"
           >
-            <p className="mb-1 text-[15px] font-medium text-by-gray-dark">Ver registro PNC</p>
+            <p className="mb-1 text-[15px] font-medium text-by-gray-dark">Ver lo ya reportado</p>
             <p className="text-[12px] text-by-gray-light">
-              Consultar, filtrar y exportar el histórico (FSG-11)
+              Consultar, filtrar y exportar el FSG-11 Registro de producto no conforme
             </p>
           </Link>
         </div>

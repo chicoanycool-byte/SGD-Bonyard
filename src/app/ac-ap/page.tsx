@@ -3,6 +3,8 @@ import { requerirUsuario } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import AcApTabla from './AcApTabla'
 import NuevaAccionManualForm from './NuevaAccionManualForm'
+import { ResumenFrase } from '@/components/ui/forma'
+import { hoyMX } from '@/lib/capacitacion'
 
 export default async function AcApPage() {
   const quien = await requerirUsuario()
@@ -43,6 +45,10 @@ export default async function AcApPage() {
       (a.responsable as unknown as { nombre: string } | null)?.nombre ?? null,
   }))
 
+  const hoy = hoyMX()
+  const abiertas = acciones.filter((a) => a.estatus !== 'cerrada' && a.estatus !== 'rechazada')
+  const vencidas = abiertas.filter((a) => a.fecha_compromiso && a.fecha_compromiso < hoy).length
+
   return (
     <AppShell
       nombre={quien.nombre}
@@ -50,8 +56,21 @@ export default async function AcApPage() {
       usuarioId={quien.id}
       activo="/ac-ap"
     >
+      <div className="flex flex-col gap-4">
+      <ResumenFrase
+        frase={
+          abiertas.length === 0 ? (
+            <>{esCoordinador ? 'No hay acciones abiertas.' : 'No tienes acciones pendientes.'} <span className="font-semibold text-emerald-700">Todo al corriente.</span></>
+          ) : (
+            <>{esCoordinador ? 'Hay' : 'Tienes'} <span className="font-semibold">{abiertas.length}</span> {abiertas.length === 1 ? 'acción por atender' : 'acciones por atender'}
+            {vencidas > 0 ? <>, <span className="font-semibold text-red-700">{vencidas} vencida{vencidas === 1 ? '' : 's'}</span></> : ', ninguna vencida'}.</>
+          )
+        }
+        detalle="Correctiva: corrige algo que ya pasó. Preventiva: evita que pase. Entra a una acción para ver qué falta."
+      />
       {esCoordinador && <NuevaAccionManualForm usuarios={usuarios ?? []} />}
       <AcApTabla acciones={acciones} esCoordinador={esCoordinador} />
+      </div>
     </AppShell>
   )
 }
