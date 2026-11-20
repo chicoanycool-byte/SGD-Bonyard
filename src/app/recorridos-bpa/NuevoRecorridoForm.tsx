@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 import { crearRecorrido, type EstadoRecorrido } from './actions'
+import { AvisoError, BotonPrincipal, Campo, FormaTarjeta, Seccion, inputCls } from '@/components/ui/forma'
 
 const inicial: EstadoRecorrido = {}
 
@@ -16,98 +16,59 @@ export default function NuevoRecorridoForm() {
   }, [estado.recorridoId, router])
 
   return (
-    <form action={formAction} className="rounded-xl border border-black/5 bg-white p-4">
-      <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
-        Nuevo recorrido BPA
-      </p>
-      <div className="grid grid-cols-4 gap-3">
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Fecha</label>
-          <input
-            name="fecha"
-            type="date"
-            required
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Nave</label>
-          <select
-            name="naves_inspeccionadas"
-            defaultValue=""
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          >
-            <option value="" disabled>Selecciona</option>
-            <option value="Nave 1">Nave 1</option>
-            <option value="Nave 2">Nave 2</option>
-            <option value="Nave 3">Nave 3</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Tipo de inspección</label>
-          <select
-            name="tipo_inspeccion"
-            required
-            defaultValue=""
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          >
-            <option value="" disabled>Selecciona</option>
-            <option value="rutinaria">Rutinaria</option>
-            <option value="extraordinaria">Extraordinaria</option>
-            <option value="auditoria_interna">Auditoría interna</option>
-            <option value="pre_auditoria_sqf">Pre-auditoría SQF</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Turno</label>
-          <select
-            name="turno"
-            defaultValue=""
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          >
-            <option value="">Selecciona</option>
-            <option value="Matutino">Matutino</option>
-            <option value="Vespertino">Vespertino</option>
-            <option value="Nocturno">Nocturno</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Supervisor del área</label>
-          <input
-            name="supervisor_area"
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Cargo del supervisor</label>
-          <input
-            name="cargo_supervisor"
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Hora de inicio</label>
-          <input
-            name="hora_inicio"
-            type="time"
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-      </div>
+    <FormaTarjeta
+      titulo="Empezar un recorrido de buenas prácticas (BPA)"
+      intro="Un recorrido es revisar las instalaciones con una lista de 204 puntos. Llena estos datos y al guardar se abre la lista para ir marcando punto por punto; el avance se guarda solo."
+    >
+      <form action={formAction} className="flex flex-col gap-4">
+        <Seccion numero={1} titulo="¿Cuándo y dónde?" ayuda="Fecha, nave y tipo de recorrido.">
+          <Campo label="Fecha del recorrido">
+            <input name="fecha" type="date" required className={inputCls} />
+          </Campo>
+          <Campo label="¿Qué nave vas a recorrer?">
+            <select name="naves_inspeccionadas" defaultValue="" className={inputCls}>
+              <option value="" disabled>Elige una opción</option>
+              <option value="Nave 1">Nave 1</option>
+              <option value="Nave 2">Nave 2</option>
+              <option value="Nave 3">Nave 3</option>
+            </select>
+          </Campo>
+          <Campo label="¿Qué tipo de recorrido es?" ayuda="Rutinaria: la revisión normal. Extraordinaria: por un evento o queja.">
+            <select name="tipo_inspeccion" required defaultValue="" className={inputCls}>
+              <option value="" disabled>Elige una opción</option>
+              <option value="rutinaria">Rutinaria</option>
+              <option value="extraordinaria">Extraordinaria</option>
+              <option value="auditoria_interna">Auditoría interna</option>
+              <option value="pre_auditoria_sqf">Pre-auditoría SQF</option>
+            </select>
+          </Campo>
+          <Campo label="Hora en que empiezas" opcional>
+            <input name="hora_inicio" type="time" className={inputCls} />
+          </Campo>
+        </Seccion>
 
-      {estado.error && (
-        <p className="mt-3 rounded-md bg-red-50 px-3 py-2 text-[12px] text-red-700">
-          {estado.error}
-        </p>
-      )}
+        <Seccion numero={2} titulo="¿Con quién lo recorres?" ayuda="Todo es opcional, pero queda en el registro.">
+          <Campo label="Turno" opcional>
+            <select name="turno" defaultValue="" className={inputCls}>
+              <option value="">No aplica</option>
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+              <option value="Nocturno">Nocturno</option>
+            </select>
+          </Campo>
+          <Campo label="Supervisor del área" opcional>
+            <input name="supervisor_area" className={inputCls} />
+          </Campo>
+          <Campo label="Cargo del supervisor" opcional>
+            <input name="cargo_supervisor" className={inputCls} />
+          </Campo>
+        </Seccion>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-3 h-8 w-fit rounded-md bg-by-primary px-4 text-[13px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
-      >
-        {pending ? 'Creando…' : 'Iniciar recorrido (204 puntos)'}
-      </button>
-    </form>
+        {estado.error && <AvisoError>{estado.error}</AvisoError>}
+        <div>
+          <BotonPrincipal pendiente={pending} textoPendiente="Preparando la lista…">Empezar recorrido</BotonPrincipal>
+        </div>
+      </form>
+    </FormaTarjeta>
   )
 }

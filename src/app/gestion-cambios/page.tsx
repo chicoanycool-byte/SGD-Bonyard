@@ -24,7 +24,10 @@ export default async function GestionCambiosPage() {
     <AppShell nombre={quien.nombre} rol={quien.rol} usuarioId={quien.id} activo="/gestion-cambios">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[14px] font-medium text-by-gray-dark">Gestión de cambios</p>
+          <div>
+            <p className="text-[16px] font-medium text-by-gray-dark">Gestión de cambios</p>
+            <p className="text-[12.5px] text-by-gray">Todo cambio se pide aquí, se evalúa y se cierra cuando se comprueba que funcionó. Cada cambio pasa por: solicitado, aprobado, implementado y cerrado.</p>
+          </div>
           {quien.rol === 'coordinador_sgi' && (porEvaluar > 0 || porVerificar > 0) && (
             <p className="text-[12px] text-by-gray">
               {porEvaluar > 0 && <span className="mr-3 font-medium text-amber-700">{porEvaluar} por evaluar</span>}

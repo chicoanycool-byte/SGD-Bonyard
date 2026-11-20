@@ -52,7 +52,10 @@ export default async function ProveedoresPage() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <p className="text-[14px] font-medium text-by-gray-dark">Proveedores (FCO-05)</p>
+          <div>
+            <p className="text-[16px] font-medium text-by-gray-dark">Proveedores</p>
+            <p className="text-[12.5px] text-by-gray">Aquí das de alta a los proveedores críticos y registras su evaluación periódica (FCO-05 Evaluación continua de proveedores críticos).</p>
+          </div>
           <div className="flex gap-2">
             <Link
               href="/proveedores/dashboard"

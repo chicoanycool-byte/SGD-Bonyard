@@ -31,7 +31,10 @@ export default async function RecorridosBpaPage() {
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <p className="text-[14px] font-medium text-by-gray-dark">Recorridos BPA</p>
+          <div>
+            <p className="text-[16px] font-medium text-by-gray-dark">Recorridos de buenas prácticas (BPA)</p>
+            <p className="text-[12.5px] text-by-gray">Revisiones de las instalaciones con una lista de puntos. Abre uno en proceso para seguir donde te quedaste.</p>
+          </div>
           <div className="flex gap-2">
             <Link
               href="/recorridos-bpa/dashboard"

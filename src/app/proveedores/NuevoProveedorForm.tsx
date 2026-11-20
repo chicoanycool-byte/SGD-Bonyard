@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect } from 'react'
 import { crearProveedor, type EstadoProveedor } from './actions'
+import { AvisoError, AvisoOk, BotonPrincipal, Campo, FormaTarjeta, Seccion, inputCls } from '@/components/ui/forma'
 
 const inicial: EstadoProveedor = {}
 
@@ -14,88 +15,53 @@ export default function NuevoProveedorForm() {
   }, [estado.ok])
 
   return (
-    <div className="rounded-xl border border-black/5 bg-white p-4">
-      <p className="mb-3 text-[13px] font-medium text-by-gray-dark">
-        Dar de alta proveedor
-      </p>
-      <form ref={formRef} action={formAction} className="grid grid-cols-4 gap-3">
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Nombre</label>
-          <input
-            name="nombre"
-            required
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Correo del proveedor</label>
-          <input
-            name="correo"
-            type="email"
-            placeholder="contacto@proveedor.com"
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Categoría</label>
-          <select
-            name="categoria"
-            required
-            defaultValue=""
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          >
-            <option value="" disabled>Selecciona</option>
-            <option value="transporte">Transporte</option>
-            <option value="fumigacion">Fumigación</option>
-            <option value="limpieza">Limpieza</option>
-            <option value="empaque">Empaque</option>
-            <option value="mantenimiento">Mantenimiento</option>
-            <option value="seguros">Seguros</option>
-            <option value="seguridad">Seguridad</option>
-            <option value="montacargas">Montacargas</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Producto / Servicio</label>
-          <input
-            name="producto_servicio"
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[11px] text-by-gray-dark">Periodicidad</label>
-          <select
-            name="periodicidad"
-            required
-            defaultValue=""
-            className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
-          >
-            <option value="" disabled>Selecciona</option>
-            <option value="bimestral">Bimestral</option>
-            <option value="trimestral">Trimestral</option>
-            <option value="semestral">Semestral</option>
-          </select>
-        </div>
+    <FormaTarjeta
+      titulo="Dar de alta un proveedor"
+      intro="Registra al proveedor y cada cuánto lo vas a evaluar. Con eso el sistema te recuerda cuándo toca evaluarlo."
+    >
+      <form ref={formRef} action={formAction} className="flex flex-col gap-4">
+        <Seccion numero={1} titulo="¿Quién es el proveedor?" ayuda="Nombre y cómo contactarlo.">
+          <Campo label="Nombre del proveedor">
+            <input name="nombre" required className={inputCls} />
+          </Campo>
+          <Campo label="Correo de contacto" opcional ayuda="Se usa para avisarle de sus evaluaciones.">
+            <input name="correo" type="email" placeholder="contacto@proveedor.com" className={inputCls} />
+          </Campo>
+        </Seccion>
 
-        {estado.error && (
-          <p className="col-span-4 rounded-md bg-red-50 px-3 py-2 text-[12px] text-red-700">
-            {estado.error}
-          </p>
-        )}
-        {estado.ok && (
-          <p className="col-span-4 rounded-md bg-[#eaf5f0] px-3 py-2 text-[12px] text-[#3d6b53]">
-            Proveedor dado de alta.
-          </p>
-        )}
+        <Seccion numero={2} titulo="¿Qué nos da y cada cuánto lo evaluamos?" ayuda="Elige la categoría y la frecuencia de evaluación.">
+          <Campo label="Categoría">
+            <select name="categoria" required defaultValue="" className={inputCls}>
+              <option value="" disabled>Elige una opción</option>
+              <option value="transporte">Transporte</option>
+              <option value="fumigacion">Fumigación</option>
+              <option value="limpieza">Limpieza</option>
+              <option value="empaque">Empaque</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="seguros">Seguros</option>
+              <option value="seguridad">Seguridad</option>
+              <option value="montacargas">Montacargas</option>
+            </select>
+          </Campo>
+          <Campo label="Producto o servicio que nos da" opcional>
+            <input name="producto_servicio" className={inputCls} />
+          </Campo>
+          <Campo label="¿Cada cuánto se evalúa?" ayuda="Bimestral: cada 2 meses. Trimestral: cada 3. Semestral: cada 6.">
+            <select name="periodicidad" required defaultValue="" className={inputCls}>
+              <option value="" disabled>Elige una opción</option>
+              <option value="bimestral">Cada 2 meses (bimestral)</option>
+              <option value="trimestral">Cada 3 meses (trimestral)</option>
+              <option value="semestral">Cada 6 meses (semestral)</option>
+            </select>
+          </Campo>
+        </Seccion>
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="col-span-4 h-8 w-fit rounded-md bg-by-primary px-4 text-[13px] font-medium text-white transition hover:bg-by-primary-dark disabled:opacity-60"
-        >
-          {pending ? 'Guardando…' : 'Dar de alta'}
-        </button>
+        {estado.error && <AvisoError>{estado.error}</AvisoError>}
+        {estado.ok && <AvisoOk>Listo, el proveedor quedó dado de alta. Ya aparece en la lista de abajo.</AvisoOk>}
+        <div>
+          <BotonPrincipal pendiente={pending}>Dar de alta</BotonPrincipal>
+        </div>
       </form>
-    </div>
+    </FormaTarjeta>
   )
 }
