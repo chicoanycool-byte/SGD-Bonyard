@@ -3,6 +3,7 @@ import AppShell from '@/components/AppShell'
 import { requerirUsuario } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import ChecklistHallazgos from './ChecklistHallazgos'
+import ChecklistFSG57 from './ChecklistFSG57'
 import PanelControlAuditoria from './PanelControlAuditoria'
 import EditarAuditoriaForm from './EditarAuditoriaForm'
 import PlanAuditoria from './PlanAuditoria'
@@ -37,7 +38,7 @@ export default async function DetalleAuditoriaPage({
     supabase.from('usuarios').select('id, nombre').eq('estatus', 'activo').order('nombre'),
     supabase
       .from('auditoria_hallazgos')
-      .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia, norma_clausula, nivel_riesgo')
+      .select('id, clausula, requisito, evidencia, evidencia_sugerida, documento_referencia, conformidad, tipo_nc, comentario, clasificacion_ia, norma_clausula, nivel_riesgo, proceso, tema, resultado')
       .eq('auditoria_id', id)
       .order('orden'),
     supabase.from('auditoria_agenda').select('*').eq('auditoria_id', id).order('orden'),
@@ -149,12 +150,21 @@ export default async function DetalleAuditoriaPage({
           puedeEditar={puedeEditar}
         />
 
-        <ChecklistHallazgos
-          auditoriaId={auditoria.id}
-          hallazgos={hallazgos ?? []}
-          puedeEditar={puedeEditar}
-          bloqueado={auditoria.estatus === 'cerrada' || auditoria.estatus === 'cancelada'}
-        />
+        {(hallazgos ?? []).some((h) => h.proceso) ? (
+          <ChecklistFSG57
+            auditoriaId={auditoria.id}
+            hallazgos={hallazgos ?? []}
+            puedeEditar={puedeEditar}
+            bloqueado={auditoria.estatus === 'cerrada' || auditoria.estatus === 'cancelada'}
+          />
+        ) : (
+          <ChecklistHallazgos
+            auditoriaId={auditoria.id}
+            hallazgos={hallazgos ?? []}
+            puedeEditar={puedeEditar}
+            bloqueado={auditoria.estatus === 'cerrada' || auditoria.estatus === 'cancelada'}
+          />
+        )}
 
         <EvaluacionAuditor
           auditoriaId={auditoria.id}

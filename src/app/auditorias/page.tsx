@@ -3,6 +3,7 @@ import { requerirUsuario } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import ProgramarAuditoriaForm from './ProgramarAuditoriaForm'
 import ProgramaAuditorias from './ProgramaAuditorias'
+import AuditoriasTabs from './AuditoriasTabs'
 
 export default async function AuditoriasPage() {
   const quien = await requerirUsuario()
@@ -52,8 +53,10 @@ export default async function AuditoriasPage() {
             Exportar PDF
           </a>
         </div>
-        {esCoordinador && <ProgramarAuditoriaForm usuarios={usuarios ?? []} />}
-        <ProgramaAuditorias auditorias={auditorias} puedeGestionar={esCoordinador} />
+        <AuditoriasTabs
+          ver={<ProgramaAuditorias auditorias={auditorias} puedeGestionar={esCoordinador} />}
+          programar={esCoordinador ? <ProgramarAuditoriaForm usuarios={usuarios ?? []} /> : null}
+        />
       </div>
     </AppShell>
   )

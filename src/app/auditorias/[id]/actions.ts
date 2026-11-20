@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { clasificarHallazgo, generarResumenInforme } from '@/lib/anthropic'
 import { checklistPorNorma } from '@/lib/checklistsAuditoria'
+import { CHECKLIST_NAVE1 } from '@/lib/checklistNave1'
 
 async function puedeEditar(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -55,7 +56,7 @@ export async function iniciarAuditoria(auditoriaId: string) {
 
   const { data: auditoria } = await supabase
     .from('auditorias')
-    .select('tipo, norma')
+    .select('tipo, norma, nave')
     .eq('id', auditoriaId)
     .single()
 
@@ -71,7 +72,26 @@ export async function iniciarAuditoria(auditoriaId: string) {
       .select('id', { count: 'exact', head: true })
       .eq('auditoria_id', auditoriaId)
 
-    if (!count || count === 0) {
+    const usaFsg57Nave1 = auditoria.norma === 'ambas' && auditoria.nave !== 'Nave 2'
+
+    if ((!count || count === 0) && usaFsg57Nave1) {
+      // Ambas normas: FSG-57 oficial de Nave 1, agrupado por proceso (resultado vacío = pendiente)
+      await supabase.from('auditoria_hallazgos').insert(
+        CHECKLIST_NAVE1.map((item, i) => ({
+          auditoria_id: auditoriaId,
+          clausula: item.clausula,
+          requisito: item.pregunta,
+          documento_referencia: item.documentos,
+          evidencia_sugerida: item.evidencia,
+          conformidad: 'conforme' as const,
+          orden: i,
+          norma_clausula: item.norma,
+          proceso: item.proceso,
+          tema: item.tema,
+          resultado: null,
+        }))
+      )
+    } else if (!count || count === 0) {
       const items = checklistPorNorma(auditoria.norma, auditoria.tipo)
       const normaAuditoria = auditoria.norma === 'iso_9001' ? 'ISO' : auditoria.norma === 'sqf' ? 'SQF' : null
       if (items.length > 0) {
@@ -93,6 +113,46 @@ export async function iniciarAuditoria(auditoriaId: string) {
   }
 
   revalidatePath(`/auditorias/${auditoriaId}`)
+}
+
+const RESULTADO_FSG57: Record<string, { conformidad: string; tipo_nc: string | null }> = {
+  C: { conformidad: 'conforme', tipo_nc: null },
+  O: { conformidad: 'oportunidad_mejora', tipo_nc: null },
+  OM: { conformidad: 'oportunidad_mejora', tipo_nc: 'oportunidad_mejora' },
+  NCm: { conformidad: 'no_conforme', tipo_nc: 'menor' },
+  NCM: { conformidad: 'no_conforme', tipo_nc: 'mayor' },
+  NCC: { conformidad: 'no_conforme', tipo_nc: 'critica' },
+  NA: { conformidad: 'no_aplica', tipo_nc: null },
+}
+
+export async function guardarFsg57(
+  hallazgoIds: string[],
+  auditoriaId: string,
+  campos: { resultado?: string; evidencia?: string; comentario?: string }
+) {
+  const quien = await requerirUsuario()
+  const supabase = await createClient()
+
+  if (!(await puedeEditar(supabase, auditoriaId, quien.id, quien.rol))) {
+    throw new Error('No autorizado.')
+  }
+
+  const update: Record<string, unknown> = {}
+  if (campos.resultado !== undefined) {
+    const mapa = RESULTADO_FSG57[campos.resultado]
+    if (!mapa) throw new Error('Resultado no válido.')
+    update.resultado = campos.resultado
+    update.conformidad = mapa.conformidad
+    update.tipo_nc = mapa.tipo_nc
+  }
+  if (campos.evidencia !== undefined) update.evidencia = campos.evidencia
+  if (campos.comentario !== undefined) update.comentario = campos.comentario
+
+  await supabase
+    .from('auditoria_hallazgos')
+    .update(update)
+    .eq('auditoria_id', auditoriaId)
+    .in('id', hallazgoIds)
 }
 
 export async function sugerirClasificacion(requisito: string, evidencia: string, norma?: 'ISO' | 'SQF' | 'AMBAS' | null) {
