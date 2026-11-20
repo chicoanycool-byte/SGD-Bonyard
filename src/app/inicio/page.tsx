@@ -9,6 +9,12 @@ function mesesAtras(n: number) {
   return d;
 }
 
+function diasAdelante(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
 async function contar(
   supabase: Awaited<ReturnType<typeof createClient>>,
   tabla: string,
@@ -86,6 +92,29 @@ export default async function InicioPage() {
     contar(supabase, "pnc_registros", (q) => q.eq("estatus", "cerrado")),
   ]);
 
+  // "Mi día": lo que le toca a esta persona (acciones a su cargo y auditorías donde participa)
+  const en14 = diasAdelante(14).toISOString().slice(0, 10);
+  const [{ data: misAcciones }, { data: misAuditorias }] = await Promise.all([
+    supabase
+      .from("acciones_correctivas")
+      .select("id, folio, descripcion, fecha_compromiso")
+      .eq("responsable_id", quien.id)
+      .in("estatus", ["abierta", "en_proceso", "rechazada"])
+      .order("fecha_compromiso", { ascending: true, nullsFirst: false })
+      .limit(5),
+    supabase
+      .from("auditorias")
+      .select("id, fecha, nave, norma")
+      .eq("estatus", "programada")
+      .gte("fecha", hoy)
+      .lte("fecha", en14)
+      .or(
+        `auditor_lider_id.eq.${quien.id},auditor_auxiliar_id.eq.${quien.id},auditado_id.eq.${quien.id}`
+      )
+      .order("fecha", { ascending: true })
+      .limit(5),
+  ]);
+
   const porcentaje = (parte: number, total: number) =>
     total > 0 ? Math.round((parte / total) * 100) : 0;
 
@@ -139,6 +168,19 @@ export default async function InicioPage() {
       pncAbiertas,
       acEfectividad: porcentaje(acCerradas, acAbiertas + acCerradas),
     },
+    misAcciones: (misAcciones ?? []).map((a) => ({
+      id: a.id as string,
+      titulo: `${a.folio ?? "Sin folio"} · ${(a.descripcion as string | null)?.slice(0, 80) ?? "Acción"}`,
+      vencida: !!a.fecha_compromiso && (a.fecha_compromiso as string) < hoy,
+      fecha: a.fecha_compromiso
+        ? new Date(a.fecha_compromiso as string + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short" })
+        : "Sin fecha",
+    })),
+    misAuditorias: (misAuditorias ?? []).map((a) => ({
+      id: a.id as string,
+      titulo: `Auditoría ${a.nave ?? ""}`.trim(),
+      fecha: new Date(a.fecha as string + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" }),
+    })),
     tendenciaPNC,
     procesos: [
       { label: "Auditorías", percent: porcentaje(auditoriasCerradas, auditoriasTotal) },

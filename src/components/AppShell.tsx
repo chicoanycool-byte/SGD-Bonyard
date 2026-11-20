@@ -47,21 +47,18 @@ const NAV: NavItem[] = [
     label: 'Quejas',
     children: [
       { href: '/quejas', label: 'Ver quejas' },
-      { href: '/quejas/dashboard', label: 'Métricas' },
     ],
   },
   {
     label: 'Acciones Correctivas y Preventivas',
     children: [
       { href: '/ac-ap', label: 'Ver Acciones' },
-      { href: '/ac-ap/dashboard', label: 'Métricas' },
     ],
   },
   {
     label: 'Recorridos BPAs',
     children: [
       { href: '/recorridos-bpa', label: 'Ver Recorridos' },
-      { href: '/recorridos-bpa/dashboard', label: 'Métricas' },
     ],
   },
   {
@@ -70,7 +67,6 @@ const NAV: NavItem[] = [
     children: [
       { href: '/verificacion-sgi', label: 'Ver Verificaciones' },
       { href: '/verificacion-sgi/programa', label: 'Programa de verificación' },
-      { href: '/verificacion-sgi/dashboard', label: 'Métricas' },
     ],
   },
   {
@@ -78,7 +74,6 @@ const NAV: NavItem[] = [
     children: [
       { href: '/pnc/capturar', label: 'Capturar PNC' },
       { href: '/pnc/registro', label: 'Ver Registros PNC' },
-      { href: '/pnc/dashboard', label: 'Métricas' },
     ],
   },
   {
@@ -91,7 +86,6 @@ const NAV: NavItem[] = [
         label: 'Permiso de trabajo',
         soloPuestos: ['Gerente de operaciones', 'Coordinador del SGI', 'Auxiliar del SGI', 'Jefe de Mantenimiento'],
       },
-      { href: '/proveedores/dashboard', label: 'Métricas', soloCoordinador: true },
     ],
   },
   {
@@ -114,7 +108,6 @@ const NAV: NavItem[] = [
     children: [
       { href: '/matriz-legal', label: 'Matriz de Requisitos Legales' },
       { href: '/matriz-legal/plan-accion', label: 'Plan de acción' },
-      { href: '/matriz-legal/indicadores', label: 'Métricas', soloCoordinador: true },
     ],
   },
   {
@@ -123,7 +116,6 @@ const NAV: NavItem[] = [
     children: [
       { href: '/mantenimiento/programa', label: 'Programa de Mantenimiento' },
       { href: '/mantenimiento/limpieza', label: 'Checklist de Limpieza' },
-      { href: '/mantenimiento/metricas', label: 'Métricas' },
     ],
   },
   {
@@ -155,6 +147,23 @@ const NAV: NavItem[] = [
         href: '/seguridad-patrimonial/sellos',
         label: 'Control de sellos',
         soloPuestos: ['Coordinador del SGI', 'Gerente de operaciones', 'Jefe de Mantenimiento'],
+      },
+    ],
+  },
+  {
+    label: 'Métricas',
+    children: [
+      { href: '/quejas/dashboard', label: 'Quejas' },
+      { href: '/ac-ap/dashboard', label: 'Acciones correctivas' },
+      { href: '/recorridos-bpa/dashboard', label: 'Recorridos BPA' },
+      { href: '/verificacion-sgi/dashboard', label: 'Verificación del SGI', soloCoordinador: true },
+      { href: '/pnc/dashboard', label: 'Producto no conforme' },
+      { href: '/proveedores/dashboard', label: 'Proveedores', soloCoordinador: true },
+      { href: '/matriz-legal/indicadores', label: 'Requisitos legales', soloCoordinador: true },
+      {
+        href: '/mantenimiento/metricas',
+        label: 'Mantenimiento',
+        soloPuestos: ['Gerente de operaciones', 'Coordinador del SGI', 'Auxiliar del SGI', 'Jefe de Mantenimiento'],
       },
     ],
   },
