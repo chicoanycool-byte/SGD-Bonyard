@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { normaPermitida, MENSAJE_NAVE_1_SOLO_ISO } from '@/lib/normasPorNave'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 import { clasificarHallazgo, generarResumenInforme } from '@/lib/anthropic'
@@ -38,24 +37,6 @@ export async function editarAuditoria(
   if (quien.rol !== 'coordinador_sgi') throw new Error('No autorizado.')
 
   const supabase = await createClient()
-
-  // Nave 1 solo se certifica en ISO 9001:2015: se valida contra lo que quedaría guardado
-  if (campos.norma !== undefined || campos.nave !== undefined) {
-    const { data: actual } = await supabase
-      .from('auditorias')
-      .select('norma, nave')
-      .eq('id', auditoriaId)
-      .single()
-    const naveFinal = campos.nave !== undefined ? campos.nave : actual?.nave
-    const normaFinal = campos.norma ?? actual?.norma ?? ''
-    const cambiaNormaONave =
-      (campos.norma !== undefined && campos.norma !== actual?.norma) ||
-      (campos.nave !== undefined && campos.nave !== actual?.nave)
-    if (cambiaNormaONave && !normaPermitida(naveFinal, normaFinal)) {
-      throw new Error(MENSAJE_NAVE_1_SOLO_ISO)
-    }
-  }
-
   await supabase
     .from('auditorias')
     .update({ ...campos, actualizado_en: new Date().toISOString() })
@@ -114,14 +95,10 @@ export async function iniciarAuditoria(auditoriaId: string) {
           }
         })
       )
-    } else if ((!count || count === 0) && (esAmbas || auditoria.nave === 'Nave 1')) {
-      // FSG-57 oficial de Nave 1, agrupado por proceso (resultado vacío = pendiente).
-      // Nave 1 ya no se certifica en SQF: solo se precargan los requisitos de ISO 9001.
-      const itemsNave1 = auditoria.nave === 'Nave 1'
-        ? CHECKLIST_NAVE1.filter((item) => item.norma === 'ISO')
-        : CHECKLIST_NAVE1
+    } else if ((!count || count === 0) && esAmbas) {
+      // Ambas normas: FSG-57 oficial de Nave 1, agrupado por proceso (resultado vacío = pendiente)
       await supabase.from('auditoria_hallazgos').insert(
-        itemsNave1.map((item, i) => ({
+        CHECKLIST_NAVE1.map((item, i) => ({
           auditoria_id: auditoriaId,
           clausula: item.clausula,
           requisito: item.pregunta,

@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { normaPermitida, MENSAJE_NAVE_1_SOLO_ISO } from '@/lib/normasPorNave'
 import { createClient } from '@/lib/supabase/server'
 import { requerirUsuario } from '@/lib/auth'
 
@@ -28,9 +27,6 @@ export async function programarAuditoria(
 
   if (!fecha || !norma || !tipo || !proceso) {
     return { error: 'Completa todos los campos obligatorios.' }
-  }
-  if (!normaPermitida(nave, norma)) {
-    return { error: MENSAJE_NAVE_1_SOLO_ISO }
   }
   if (tipo === 'cliente' && !clienteNombre) {
     return { error: 'Escribe el nombre del cliente.' }
