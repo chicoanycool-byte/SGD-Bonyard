@@ -60,12 +60,13 @@ const METODOS: Record<string, string> = {
 function FilaObjetivo({ o, editable }: { o: Objetivo; editable: boolean }) {
   const [avance, setAvance] = useState(o.avance ?? '')
   const [estatus, setEstatus] = useState(o.estatus)
+  const [fecha, setFecha] = useState(o.fecha_limite ?? '')
   const [msg, setMsg] = useState('')
   const [pendiente, iniciar] = useTransition()
 
   function guardar() {
     iniciar(async () => {
-      const r = await actualizarObjetivo(o.id, avance, estatus)
+      const r = await actualizarObjetivo(o.id, avance, estatus, fecha)
       setMsg(r.error ?? '✓ Guardado')
     })
   }
@@ -77,7 +78,15 @@ function FilaObjetivo({ o, editable }: { o: Objetivo; editable: boolean }) {
       <td className="px-3 py-2">{o.indicador}</td>
       <td className="px-3 py-2">{o.meta}</td>
       <td className="px-3 py-2">{o.responsable ?? '—'}</td>
-      <td className="px-3 py-2">{o.fecha_limite ? new Date(o.fecha_limite + 'T12:00:00').toLocaleDateString('es-MX') : '—'}</td>
+      <td className="px-3 py-2">
+        {editable ? (
+          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={campo + ' h-7 w-36'} />
+        ) : o.fecha_limite ? (
+          new Date(o.fecha_limite + 'T12:00:00').toLocaleDateString('es-MX')
+        ) : (
+          'Por definir'
+        )}
+      </td>
       <td className="px-3 py-2">
         {editable ? (
           <div className="flex flex-col gap-1.5">

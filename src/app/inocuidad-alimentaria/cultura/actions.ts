@@ -39,13 +39,13 @@ export async function crearObjetivo(_p: EstadoCultura, fd: FormData): Promise<Es
   return { ok: true }
 }
 
-export async function actualizarObjetivo(id: string, avance: string, estatus: string): Promise<EstadoCultura> {
+export async function actualizarObjetivo(id: string, avance: string, estatus: string, fechaLimite: string): Promise<EstadoCultura> {
   if (!(await soloCoordinador())) return { error: 'Solo el Coordinador del SGI puede editar el plan.' }
   if (!['en_proceso', 'cumplido', 'no_cumplido'].includes(estatus)) return { error: 'Estatus no válido.' }
   const supabase = await createClient()
   const { error } = await supabase
     .from('cultura_objetivos')
-    .update({ avance: avance.trim() || null, estatus, actualizado_en: new Date().toISOString() })
+    .update({ avance: avance.trim() || null, estatus, fecha_limite: fechaLimite || null, actualizado_en: new Date().toISOString() })
     .eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/inocuidad-alimentaria/cultura')
