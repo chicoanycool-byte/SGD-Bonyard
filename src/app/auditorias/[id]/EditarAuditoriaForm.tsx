@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { editarAuditoria } from './actions'
+import { normaPermitida } from '@/lib/normasPorNave'
 
 type Usuario = { id: string; nombre: string }
 
@@ -74,8 +75,8 @@ export default function EditarAuditoriaForm({
             className={inputCls}
           >
             <option value="iso_9001">ISO 9001:2015</option>
-            <option value="sqf">SQF</option>
-            <option value="ambas">Ambas</option>
+            {(normaPermitida(campos.nave, 'sqf') || campos.norma === 'sqf') && <option value="sqf">SQF</option>}
+            {(normaPermitida(campos.nave, 'ambas') || campos.norma === 'ambas') && <option value="ambas">Ambas</option>}
           </select>
         </div>
         <div>

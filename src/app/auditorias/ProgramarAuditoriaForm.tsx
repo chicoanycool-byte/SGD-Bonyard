@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useEffect, useState } from 'react'
 import { programarAuditoria, type EstadoProgramarAuditoria } from './actions'
+import { normaPermitida } from '@/lib/normasPorNave'
 
 type Usuario = { id: string; nombre: string }
 
@@ -15,11 +16,15 @@ export default function ProgramarAuditoriaForm({
   const [estado, formAction, pending] = useActionState(programarAuditoria, inicial)
   const formRef = useRef<HTMLFormElement>(null)
   const [tipo, setTipo] = useState('')
+  const [nave, setNave] = useState('')
+  const [norma, setNorma] = useState('')
 
   useEffect(() => {
     if (estado.ok) {
       formRef.current?.reset()
       setTipo('')
+      setNave('')
+      setNorma('')
     }
   }, [estado.ok])
 
@@ -47,14 +52,18 @@ export default function ProgramarAuditoriaForm({
           <select
             name="norma"
             required
-            defaultValue=""
+            value={norma}
+            onChange={(e) => setNorma(e.target.value)}
             className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           >
             <option value="" disabled>Selecciona</option>
             <option value="iso_9001">ISO 9001:2015</option>
-            <option value="sqf">SQF</option>
-            <option value="ambas">Ambas (ISO 9001:2015 + SQF)</option>
+            {normaPermitida(nave, 'sqf') && <option value="sqf">SQF</option>}
+            {normaPermitida(nave, 'ambas') && <option value="ambas">Ambas (ISO 9001:2015 + SQF)</option>}
           </select>
+          {nave === 'Nave 1' && (
+            <p className="mt-1 text-[10.5px] text-by-gray">Nave 1 solo se certifica en ISO 9001:2015.</p>
+          )}
         </div>
         <div>
           <label className="mb-1 block text-[11px] text-by-gray-dark">
@@ -92,7 +101,11 @@ export default function ProgramarAuditoriaForm({
           </label>
           <select
             name="nave"
-            defaultValue=""
+            value={nave}
+            onChange={(e) => {
+              setNave(e.target.value)
+              if (!normaPermitida(e.target.value, norma)) setNorma('')
+            }}
             className="h-8 w-full rounded-md border border-black/10 px-2.5 text-[13px] outline-none focus:border-by-accent focus:ring-2 focus:ring-by-accent/30"
           >
             <option value="">Selecciona</option>
